@@ -1,0 +1,18 @@
+[package]
+name = "crownhome-util"
+description = "Filesystem, XDG, desktop-entry, icon and raster helpers shared by the CrownOS home crates"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+geometry.workspace = true
+resvg.workspace = true
+image.workspace = true
+freedesktop_entry_parser.workspace = true
+freedesktop-icons.workspace = true
+dirs.workspace = true
+log.workspace = true
+thiserror.workspace = true

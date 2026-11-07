@@ -1,0 +1,16 @@
+[package]
+name = "crownhome-board"
+description = "The CrownOS home board: the grid, the saved arrangement and the rules for changing it"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+crownhome-util.workspace = true
+geometry.workspace = true
+serde.workspace = true
+toml.workspace = true
+log.workspace = true
+thiserror.workspace = true

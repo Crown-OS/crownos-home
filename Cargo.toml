@@ -1,0 +1,82 @@
+[workspace]
+members = ["crates/*"]
+resolver = "3"
+
+[workspace.package]
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.97"
+license = "MIT"
+repository = "https://github.com/crown-os/crownos-home"
+
+[workspace.dependencies]
+crownhome-board = { path = "crates/board" }
+crownhome-services = { path = "crates/services" }
+crownhome-util = { path = "crates/util" }
+crownhome-widgets = { path = "crates/widgets" }
+crownos-accounts = { path = "crates/accounts" }
+
+crownui = { path = "../crownui/crownui", default-features = false, features = ["wayland", "impeller", "static", "tokio"] }
+geometry = { path = "../crownui/geometry" }
+crownos-ipc = { path = "../crownos-ipc", features = ["tokio"] }
+crownplugin-proto = { path = "../crownos-plugins/proto" }
+crownplugin-render = { path = "../crownos-plugins/render" }
+
+tokio = { version = "1", features = ["rt", "time", "sync", "macros"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+jiff = "0.2"
+ureq = { version = "3", default-features = false, features = ["rustls"] }
+
+resvg = { version = "0.48", default-features = false }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+freedesktop_entry_parser = "1.3"
+freedesktop-icons = "0.4"
+
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+serde_json = "1"
+dirs = "5"
+sha2 = "0.10"
+base64 = "0.22"
+getrandom = { version = "0.3", features = ["std"] }
+
+anyhow = "1"
+thiserror = "2"
+log = "0.4"
+env_logger = "0.11"
+
+[package]
+name = "crownos-home"
+description = "The CrownOS desktop: live widgets on a glass board above the wallpaper"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+crownhome-board.workspace = true
+crownhome-services.workspace = true
+crownhome-util.workspace = true
+crownhome-widgets.workspace = true
+crownui.workspace = true
+toml.workspace = true
+anyhow.workspace = true
+log.workspace = true
+env_logger.workspace = true
+
+[dev-dependencies]
+crowntest = { path = "../crownui/crowntest" }
+impeller = { path = "../crownui/impeller", features = ["static"] }
+runtime = { path = "../crownui/runtime" }
+taffy-layout = { path = "../crownui/taffy-layout" }
+view = { path = "../crownui/view" }
+windowing = { path = "../crownui/windowing" }
+input = { path = "../crownui/input" }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+tokio = { version = "1", features = ["rt-multi-thread"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

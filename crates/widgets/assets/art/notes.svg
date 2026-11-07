@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FAD432"/>
+      <stop offset="1" stop-color="#FDA61C"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFBEE"/>
+      <stop offset="1" stop-color="#F6E3BC"/>
+    </linearGradient>
+    <clipPath id="icon">
+      <rect width="120" height="120" rx="27"/>
+    </clipPath>
+  </defs>
+  <rect width="120" height="120" rx="27" fill="url(#face)"/>
+  <g stroke="#C77800" stroke-opacity="0.22" stroke-width="1.6">
+    <path d="M20 36H100M20 52H100M20 68H100M20 84H100"/>
+  </g>
+  <g clip-path="url(#icon)">
+    <g transform="translate(29 89) rotate(-49)">
+      <path fill="url(#body)" d="M24 -11H140V11H24z"/>
+      <path fill="#F1D08F" d="M24 -11L0 0L24 11z"/>
+      <path fill="#6F5B40" d="M8 -3.7L0 0L8 3.7z"/>
+      <path d="M24 0H140" stroke="#E9CE9C" stroke-width="0.8"/>
+    </g>
+  </g>
+</svg>

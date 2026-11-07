@@ -1,0 +1,23 @@
+[package]
+name = "crownhome-services"
+description = "The clock, launcher, plugin daemon and online feeds the CrownOS home widgets read"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+crownhome-util.workspace = true
+crownui.workspace = true
+crownos-ipc.workspace = true
+serde.workspace = true
+crownos-accounts.workspace = true
+zbus.workspace = true
+ureq.workspace = true
+serde_json.workspace = true
+crownplugin-proto.workspace = true
+jiff.workspace = true
+tokio.workspace = true
+log.workspace = true
+thiserror.workspace = true
