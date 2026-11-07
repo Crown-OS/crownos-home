@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1608" viewBox="0 0 1000 1608">
+<defs>
+<linearGradient id="night" x1="0" y1="0" x2="0" y2="1608" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#151417"/><stop offset="0.45" stop-color="#161519"/><stop offset="1" stop-color="#1d1a2b"/></linearGradient>
+<radialGradient id="atmosphere" cx="500" cy="1500" r="1" gradientTransform="translate(500 1500) scale(1150 840) translate(-500 -1500)" gradientUnits="userSpaceOnUse">
+<stop offset="0.62" stop-color="#1e1a2d" stop-opacity="0"/>
+<stop offset="0.74" stop-color="#3c1676" stop-opacity="0.75"/>
+<stop offset="0.86" stop-color="#7a10f0"/>
+<stop offset="0.95" stop-color="#9a1cff"/>
+<stop offset="0.985" stop-color="#e2b8ff"/>
+<stop offset="1" stop-color="#ffffff"/>
+</radialGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#b04dff"/><stop offset="0.3" stop-color="#f3e6ff"/><stop offset="0.6" stop-color="#ffffff"/><stop offset="1" stop-color="#b04dff"/></linearGradient>
+<filter id="bloom" filterUnits="userSpaceOnUse" x="-200" y="0" width="1400" height="1608"><feGaussianBlur stdDeviation="34"/></filter>
+<filter id="soft" filterUnits="userSpaceOnUse" x="-200" y="0" width="1400" height="1608"><feGaussianBlur stdDeviation="9"/></filter>
+<clipPath id="planet"><ellipse cx="500" cy="1500" rx="1150" ry="840"/></clipPath>
+<linearGradient id="stemA" x1="282" y1="0" x2="372" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7b7e86"/><stop offset="0.3" stop-color="#e9eaee"/><stop offset="0.5" stop-color="#ffffff"/><stop offset="0.78" stop-color="#cfd1d6"/><stop offset="1" stop-color="#6e7179"/></linearGradient>
+<linearGradient id="stemB" x1="645" y1="0" x2="735" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8a8d94"/><stop offset="0.28" stop-color="#f1f1f4"/><stop offset="0.48" stop-color="#ffffff"/><stop offset="0.8" stop-color="#c4c6cc"/><stop offset="1" stop-color="#66696f"/></linearGradient>
+<linearGradient id="cap" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5d6067"/><stop offset="0.35" stop-color="#e6e7ea"/><stop offset="0.6" stop-color="#ffffff"/><stop offset="1" stop-color="#55585e"/></linearGradient>
+<radialGradient id="shellA" cx="300" cy="540" r="250" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff"/><stop offset="0.45" stop-color="#eeeef1"/><stop offset="0.78" stop-color="#c3c5cb"/><stop offset="1" stop-color="#7f828a"/></radialGradient>
+<radialGradient id="shellB" cx="650" cy="720" r="290" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff"/><stop offset="0.42" stop-color="#efeff2"/><stop offset="0.76" stop-color="#c6c8ce"/><stop offset="1" stop-color="#80838b"/></radialGradient>
+<radialGradient id="tipA" cx="455" cy="600" r="120" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#f4f4f6"/><stop offset="0.6" stop-color="#c7c8cd"/><stop offset="1" stop-color="#7d7f86"/></radialGradient>
+<radialGradient id="tipB" cx="585" cy="850" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fbfbfc"/><stop offset="0.55" stop-color="#dcdde1"/><stop offset="1" stop-color="#8e9097"/></radialGradient>
+<radialGradient id="mesh" cx="518" cy="898" r="54" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2f2f34"/><stop offset="0.7" stop-color="#151518"/><stop offset="1" stop-color="#3b3b41"/></radialGradient>
+<linearGradient id="sensor" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b3b40"/><stop offset="1" stop-color="#121214"/></linearGradient>
+<filter id="blur6" filterUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1608"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="blur30" filterUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1608"><feGaussianBlur stdDeviation="30"/></filter>
+<filter id="blur14" filterUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1608"><feGaussianBlur stdDeviation="14"/></filter>
+<path id="headA" d="M215 600 C205 520 280 485 350 492 C420 498 455 545 450 610 C446 660 378 688 372 735 L369 790 L297 790 L282 735 C276 690 220 655 215 600 Z"/>
+<path id="headB" d="M540 800 C540 720 620 672 700 676 C780 680 815 735 810 800 C806 862 742 896 735 950 L732 990 L650 990 L645 950 C640 905 545 870 540 800 Z"/>
+<linearGradient id="riseA" x1="0" y1="705" x2="0" y2="775" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000"/><stop offset="1" stop-color="#fff"/></linearGradient>
+<linearGradient id="riseB" x1="0" y1="895" x2="0" y2="965" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000"/><stop offset="1" stop-color="#fff"/></linearGradient>
+<mask id="emergeA" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1608"><rect width="1000" height="1608" fill="url(#riseA)"/></mask>
+<mask id="emergeB" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1608"><rect width="1000" height="1608" fill="url(#riseB)"/></mask>
+<clipPath id="clipA"><use href="#headA"/></clipPath>
+<clipPath id="clipB"><use href="#headB"/></clipPath>
+</defs>
+<rect width="1000" height="1608" fill="url(#night)"/>
+<ellipse cx="500" cy="1500" rx="1150" ry="840" fill="none" stroke="#a23cff" stroke-width="70" opacity="0.55" filter="url(#bloom)"/>
+<ellipse cx="500" cy="1500" rx="1150" ry="840" fill="url(#atmosphere)"/>
+<g clip-path="url(#planet)">
+<ellipse cx="500" cy="1500" rx="1150" ry="840" fill="none" stroke="url(#rim)" stroke-width="26" opacity="0.9" filter="url(#soft)"/>
+</g>
+<ellipse cx="500" cy="1500" rx="1150" ry="840" fill="none" stroke="url(#rim)" stroke-width="4" opacity="0.85"/>
+<g transform="translate(520 830) scale(1.18) translate(-520 -830)">
+<g id="left">
+<ellipse cx="470" cy="640" rx="72" ry="94" transform="rotate(-8 470 640)" fill="url(#tipA)"/>
+<ellipse cx="452" cy="640" rx="30" ry="80" transform="rotate(-8 452 640)" fill="#6f7178" opacity="0.5" filter="url(#blur14)"/>
+<use href="#headA" fill="url(#shellA)"/>
+<g clip-path="url(#clipA)">
+<use href="#headA" fill="none" stroke="#6d7078" stroke-width="22" opacity="0.35" filter="url(#blur14)"/>
+<ellipse cx="410" cy="700" rx="130" ry="80" fill="#6f727b" opacity="0.55" filter="url(#blur30)"/>
+<ellipse cx="430" cy="650" rx="55" ry="70" fill="#9b3dff" opacity="0.28" filter="url(#blur14)"/>
+<ellipse cx="290" cy="530" rx="55" ry="26" transform="rotate(-25 290 530)" fill="#fff" opacity="0.9" filter="url(#blur6)"/>
+</g>
+<g mask="url(#emergeA)">
+<path d="M282 700 C282 688 372 688 372 700 L366 948 Q366 968 333 968 Q300 968 300 948 Z" fill="url(#stemA)"/>
+<path d="M300.5 938 L365.5 938 L366 948 Q366 968 333 968 Q300 968 300 948 Z" fill="url(#cap)"/>
+<path d="M300.5 938 L365.5 938" stroke="#5a5c62" stroke-width="2"/>
+</g>
+<rect x="300" y="574" width="54" height="124" rx="27" fill="url(#sensor)"/>
+<rect x="306" y="582" width="16" height="60" rx="8" fill="#ffffff" opacity="0.12"/>
+</g>
+
+<g id="right">
+<use href="#headB" fill="url(#shellB)"/>
+<g clip-path="url(#clipB)">
+<use href="#headB" fill="none" stroke="#6d7078" stroke-width="24" opacity="0.35" filter="url(#blur14)"/>
+<ellipse cx="770" cy="890" rx="140" ry="90" fill="#6f727b" opacity="0.55" filter="url(#blur30)"/>
+<ellipse cx="790" cy="840" rx="60" ry="75" fill="#9b3dff" opacity="0.3" filter="url(#blur14)"/>
+<ellipse cx="660" cy="712" rx="70" ry="24" transform="rotate(-18 660 712)" fill="#fff" opacity="0.85" filter="url(#blur6)"/>
+</g>
+<g mask="url(#emergeB)">
+<path d="M645 880 L735 880 L728 1133 Q728 1155 690 1155 Q652 1155 652 1133 Z" fill="url(#stemB)"/>
+<path d="M653 1122 L727.5 1122 L728 1133 Q728 1155 690 1155 Q652 1155 652 1133 Z" fill="url(#cap)"/>
+<path d="M653 1122 L727.5 1122" stroke="#5a5c62" stroke-width="2"/>
+</g>
+<ellipse cx="575" cy="905" rx="70" ry="60" transform="rotate(-15 575 905)" fill="#5e6068" opacity="0.45" filter="url(#blur14)"/>
+<ellipse cx="600" cy="880" rx="70" ry="66" transform="rotate(-15 600 880)" fill="#b9bbc1"/>
+<ellipse cx="562" cy="896" rx="108" ry="94" transform="rotate(-15 562 896)" fill="url(#tipB)"/>
+<ellipse cx="562" cy="896" rx="107" ry="93" transform="rotate(-15 560 898)" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.5"/>
+<ellipse cx="512" cy="904" rx="50" ry="45" transform="rotate(-15 512 904)" fill="url(#mesh)"/>
+<ellipse cx="512" cy="904" rx="52" ry="47" transform="rotate(-15 515 906)" fill="none" stroke="#a7a9af" stroke-width="5" opacity="0.8"/>
+<rect x="672" y="753" width="102" height="38" rx="19" transform="rotate(-28 723 772)" fill="url(#sensor)"/>
+</g>
+</g>
+</svg>

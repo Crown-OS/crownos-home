@@ -5,6 +5,8 @@ mod controls;
 mod cover;
 mod lines;
 
+pub(crate) use controls::{NEXT, PAUSE, PLAY, PREVIOUS, button};
+
 use std::time::{Duration, Instant};
 
 use crownui::{
@@ -13,15 +15,17 @@ use crownui::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{Built, Env, Shape, glass::glass, scale::Scale};
+use crate::{Built, Env, Shape, face, scale::Scale, shape::ROUNDING};
 use crownhome_board::WidgetSpec;
 use crownhome_services::music::{self, Playback, Source, Track};
 
 pub const KIND: &str = "music";
 
 const DESIGN: (f32, f32) = (237.5, 241.0);
-const ROUNDING: f32 = 30.0;
 const BAR_HEIGHT: f32 = 5.0;
+const PADDING: f32 = 18.0;
+/// The cover's corner, concentric with the card's.
+const COVER_ROUNDING: f32 = ROUNDING - PADDING;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -35,7 +39,7 @@ pub fn shape(size: Size) -> Shape {
     Shape::filling(size, ROUNDING * measure(size))
 }
 
-fn sample() -> Playback {
+pub(crate) fn sample() -> Playback {
     Playback {
         track: Track {
             title: "Blessing in Disguise".to_owned(),
@@ -118,10 +122,10 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
     ))
     .w_full()
     .h_full()
-    .p(scale.px(18.0))
+    .p(scale.px(PADDING))
     .rounded(scale.px(ROUNDING))
     .overflow_hidden();
-    Ok(glass(card, env, |palette| palette.frost).boxed())
+    Ok(face::under(card, env, scale.length(cx, ROUNDING)).boxed())
 }
 
 #[cfg(test)]

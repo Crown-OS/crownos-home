@@ -3,7 +3,6 @@
 use std::path::PathBuf;
 
 use crownui::{
-    ext::{DragOverEvent, DropEvent},
     kit::{INTER_FAMILY, ThemeMode, provide_configured_theme},
     prelude::{
         Color, Cx, Listeners, Rect, Role, Runtime, Semantic, Spring, Styled, View, bind, component,
@@ -12,7 +11,6 @@ use crownui::{
 };
 
 use crate::ui::{
-    app_icons,
     board::board,
     desk::{Desk, MenuAnchor},
     gallery::{self, gallery},
@@ -22,9 +20,8 @@ use crate::ui::{
 };
 use crownhome_board::{BoardSpec, WidgetSpec};
 use crownhome_services::{clock, plugins::Plugins};
-use crownhome_util::uri::{URI_LIST, parse_uri_list};
 use crownhome_widgets::palette::Palette;
-use crownhome_widgets::{self, Ambient, Env, Finish, app};
+use crownhome_widgets::{self, Ambient, Env, Finish};
 
 const LANDING_RADIUS: f32 = 24.0;
 const LANDING_FITS: (Color, Color) = (rgba(0xFFFFFF29), rgba(0xFFFFFFB3));
@@ -99,6 +96,7 @@ fn carried(desk: Desk) -> impl View {
                 ambient: desk.ambient,
                 size: cx.memo(move |runtime| frame.get(runtime).size),
                 finish: Finish::Sample,
+                raised: cx.signal(false),
             };
             vstack(crownhome_widgets::view(cx, &spec, env))
                 .absolute()
@@ -114,38 +112,6 @@ fn carried(desk: Desk) -> impl View {
     .absolute()
     .inset(0.0)
     .pointer_events_none()
-}
-
-fn drag_over(event: &mut DragOverEvent) {
-    if event.offers(URI_LIST) {
-        event.accept(URI_LIST);
-    }
-}
-
-/// App entries dropped from the dock or the launcher become app widgets
-/// where they land.
-fn dropped(cx: &mut Cx, desk: Desk, event: &DropEvent) {
-    let grid = desk.board_grid(cx);
-    let entries = parse_uri_list(&event.data).filter(|path| {
-        path.extension()
-            .is_some_and(|extension| extension == "desktop")
-    });
-    for entry in entries {
-        let area = grid.snap(event.position, 1, 1);
-        let settings = toml::Value::try_from(app::Settings::of_entry(&entry));
-        let Ok(toml::Value::Table(settings)) = settings else {
-            continue;
-        };
-        let spec = WidgetSpec {
-            kind: app::KIND.to_owned(),
-            column: area.column,
-            row: area.row,
-            columns: 1,
-            rows: 1,
-            settings,
-        };
-        desk.add(cx, spec);
-    }
 }
 
 fn press_elsewhere(cx: &mut Cx, desk: Desk) {
@@ -175,7 +141,6 @@ pub fn root(spec: BoardSpec, file: Option<PathBuf>) -> impl View {
         let desk = Desk::new(cx, spec, file, ambient);
         zstack((
             size_probe(desk.surface).absolute().inset(0.0),
-            app_icons::reporter(desk),
             board(desk),
             landing(cx, desk),
             carried(desk),
@@ -194,7 +159,5 @@ pub fn root(spec: BoardSpec, file: Option<PathBuf>) -> impl View {
             desk.menu.set(cx, Some(MenuAnchor { at, tile: None }));
         })
         .on_click(move |cx, _| press_elsewhere(cx, desk))
-        .on_drag_over(|_, event| drag_over(event))
-        .on_drop(move |cx, event| dropped(cx, desk, event))
     })
 }

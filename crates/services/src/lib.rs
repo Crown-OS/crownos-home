@@ -1,11 +1,11 @@
-//! What the CrownOS home widgets read and drive: the clock, the launcher, the
-//! plugin daemon and the online feeds.
+//! What the CrownOS home widgets read and drive: the clock, the plugin daemon,
+//! Bluetooth earbuds and the online feeds.
 
 pub mod calendar;
 pub mod clock;
-pub mod crownpad;
+pub mod earbuds;
+pub mod folder;
 pub mod launch;
 pub mod music;
-mod non_default_gpu;
 pub mod plugins;
 pub mod weather;

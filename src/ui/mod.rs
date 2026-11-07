@@ -1,4 +1,3 @@
-mod app_icons;
 mod board;
 mod carry;
 pub mod desk;

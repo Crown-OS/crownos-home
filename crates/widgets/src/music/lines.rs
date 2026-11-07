@@ -1,6 +1,6 @@
-use std::{rc::Rc, time::Duration};
+use std::time::Duration;
 
-use crownui::prelude::{Cx, Memo, Runtime, Signal, Styled, View, bind, keyed, text, vstack};
+use crownui::prelude::{Curve, Cx, Memo, Signal, Styled, View, keyed, text, vstack};
 
 use crate::{
     Env,
@@ -10,6 +10,11 @@ use crownhome_services::music::{Lyrics, Track, fetch_lyrics};
 
 const SAMPLE_LYRICS: &str = "[00:00.00] I can see it's hard to find\n[03:00.00] This blessing in disguise\n[03:30.00] This blessing in disguise";
 const NOTHING_PLAYING: [&str; 3] = ["", "Not Playing", "Spotify"];
+const SETTLE_MILLIS: u64 = 700;
+/// How blurred a new set of lines is as it starts to appear.
+const HAZE: f32 = 8.0;
+/// How far, in design points, lines drift as they come and go.
+const RISE: f32 = 10.0;
 
 /// The three lines shown at `at`: the one just sung, the one being sung, and
 /// the next. Without lyrics they are the album, the title and the artists.
@@ -34,6 +39,41 @@ fn shown(track: Option<&Track>, lyrics: Option<&Lyrics>, at: Duration) -> [Strin
     }
 }
 
+/// One set of lines, drifting up out of a blur as it arrives and fading
+/// upwards as the next set takes its place.
+fn verse([previous, current, next]: [String; 3], rise: f32, env: Env, scale: Scale) -> impl View {
+    let palette = env.ambient.palette;
+    let faint = |line: String| {
+        text(line)
+            .text_size(scale.px(14.0))
+            .line_clamp(2)
+            .text_color(ink(palette, |palette| {
+                palette.ink_secondary.with_alpha_factor(0.7)
+            }))
+    };
+    let sung = text(current)
+        .text_size(scale.px(16.0))
+        .font_weight(560)
+        .line_clamp(2)
+        .text_color(ink(palette, |palette| palette.ink));
+    let haze = vstack(())
+        .absolute()
+        .inset(0.0)
+        .backdrop_blur(0.0)
+        .enter(|style| style.backdrop_blur(HAZE))
+        .transition(Curve::ease_out(SETTLE_MILLIS))
+        .pointer_events_none();
+    vstack((faint(previous), sung, faint(next), haze))
+        .relative()
+        .gap(scale.px(3.0))
+        .w_full()
+        .opacity(1.0)
+        .translate_y(0.0)
+        .enter(|style| style.opacity(0.0).translate_y(rise))
+        .exit(|style| style.opacity(0.0).translate_y(-rise))
+        .transition(Curve::ease_in_out(SETTLE_MILLIS))
+}
+
 fn column(
     cx: &mut Cx,
     track: Option<Track>,
@@ -51,36 +91,16 @@ fn column(
         (Some(_), false) => lyrics.set(cx, Some(Lyrics::parse(SAMPLE_LYRICS))),
         (None, _) => {}
     }
-    let track = Rc::new(track);
-    let line = |slot: usize| {
-        let track = Rc::clone(&track);
-        bind(move |runtime: &mut Runtime| {
-            let at = position.get(runtime).map_or(Duration::ZERO, |(at, _)| at);
-            lyrics.with(runtime, |lyrics| {
-                shown(track.as_ref().as_ref(), lyrics.as_ref(), at)
-                    .into_iter()
-                    .nth(slot)
-                    .unwrap_or_default()
-            })
-        })
-    };
-    let palette = env.ambient.palette;
-    let faint = |slot: usize| {
-        text(line(slot))
-            .text_size(scale.px(14.0))
-            .line_clamp(2)
-            .text_color(ink(palette, |palette| {
-                palette.ink_secondary.with_alpha_factor(0.7)
-            }))
-    };
-    let sung = text(line(1))
-        .text_size(scale.px(16.0))
-        .font_weight(560)
-        .line_clamp(2)
-        .text_color(ink(palette, |palette| palette.ink));
-    vstack((faint(0), sung, faint(2)))
-        .gap(scale.px(3.0))
-        .w_full()
+    let lines = cx.memo(move |runtime| {
+        let at = position.get(runtime).map_or(Duration::ZERO, |(at, _)| at);
+        lyrics.with(runtime, |lyrics| shown(track.as_ref(), lyrics.as_ref(), at))
+    });
+    let factor = scale.factor();
+    keyed(
+        move |runtime| lines.get(runtime),
+        move |cx, lines| verse(lines, factor.get(cx) * RISE, env, scale),
+    )
+    .w_full()
 }
 
 pub fn view(

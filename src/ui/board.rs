@@ -3,7 +3,7 @@
 
 use crownhome_util::squircle;
 use crownui::{
-    ext::{DrawCommand, DrawList, Paint, Path, Stroke},
+    ext::{DrawCommand, DrawList, Modifier, Paint, Path, Stroke, StyleProp},
     prelude::{
         Color, CursorIcon, Cx, Listeners, Memo, Point, Role, Runtime, Semantic, Signal, Size,
         Spring, Styled, View, WHITE, bind, canvas, for_each, icon, rgba, show, vstack, zstack,
@@ -25,14 +25,8 @@ const OUTLINE_GAP: f32 = 5.0;
 const OUTLINE_WIDTH: f32 = 1.5;
 const OUTLINE_RIM: Color = rgba(0x3A3A4099);
 const GRIP_WIDTH: f32 = 5.0;
-const GRIP_HALO: f32 = 2.5;
-const GRIP_RUN: f32 = 10.0;
-const GRIP_INSET: f32 = GRIP_WIDTH / 2.0 + GRIP_HALO;
-/// Pills have corners as deep as they are tall; the grip follows only the
-/// first stretch of one.
-const GRIP_REACH_CAP: f32 = 40.0;
-const GRIP_FILL: Color = rgba(0x3A3A40F2);
-const GRIP_HALO_FILL: Color = rgba(0xFFFFFFB3);
+const GRIP_LENGTH: f32 = 52.0;
+const GRIP_INSET: f32 = GRIP_WIDTH / 2.0;
 const LIFTED_SCALE: f32 = 1.04;
 const MINUS: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3" stroke-linecap="round"><path d="M6 12h12"/></svg>"#;
 
@@ -71,7 +65,9 @@ fn placed(cx: &mut Cx, desk: Desk, tile: Signal<Tile>) -> impl View + use<> {
         ambient: desk.ambient,
         size,
         finish: Finish::Live,
+        raised: cx.signal(false),
     };
+    let raised = env.raised;
     let content = crownhome_widgets::view(cx, &spec, env);
     zstack((
         content,
@@ -79,7 +75,8 @@ fn placed(cx: &mut Cx, desk: Desk, tile: Signal<Tile>) -> impl View + use<> {
             desk.editing,
             move || handles(desk, id, outline),
             || vstack(()),
-        ),
+        )
+        .pointer_events_none(),
     ))
     .absolute()
     .left(bind(move |runtime| frame.get(runtime).origin.x))
@@ -94,6 +91,9 @@ fn placed(cx: &mut Cx, desk: Desk, tile: Signal<Tile>) -> impl View + use<> {
         }
     }))
     .transition(Spring::snappy())
+    .modifier(Modifier::Bound(Box::new(move |runtime| {
+        StyleProp::ZIndex(i16::from(raised.get(runtime)))
+    })))
     .role(Role::ListItem)
     .label(spec.kind.clone())
     .pointer_events_auto()
@@ -153,6 +153,7 @@ fn handles(desk: Desk, id: TileId, outline: Memo<Shape>) -> impl View {
     zstack((rim(outline), mover, remove, corner))
         .absolute()
         .inset(0.0)
+        .pointer_events_auto()
 }
 
 /// A thin rim just outside the widget's own outline, marking what the handles hold.
@@ -170,15 +171,12 @@ fn rim(outline: Memo<Shape>) -> impl View {
         .pointer_events_none()
 }
 
-/// The stretch of a corner of `radius` the grip covers, from where it leaves
-/// the right edge to where it joins the bottom one.
+/// The middle stretch of a corner of `radius`, about `GRIP_LENGTH` long.
 fn grip_path(corner: Point, radius: f32) -> Path {
-    let [start, first, second, end] = squircle::bottom_right(corner, radius);
-    Path::new()
-        .move_to(Point::new(start.x, start.y - GRIP_RUN))
-        .line_to(start)
-        .cubic_to(first, second, end)
-        .line_to(Point::new(end.x - GRIP_RUN, end.y))
+    let curve = squircle::bottom_right(corner, radius);
+    let half_span = (GRIP_LENGTH / squircle::length(curve)).min(1.0) / 2.0;
+    let [start, first, second, end] = squircle::segment(curve, 0.5 - half_span, 0.5 + half_span);
+    Path::new().move_to(start).cubic_to(first, second, end)
 }
 
 fn paint_grip(list: &mut DrawList, size: Size, radius: f32) {
@@ -187,23 +185,16 @@ fn paint_grip(list: &mut DrawList, size: Size, radius: f32) {
         radius,
     );
     list.push(DrawCommand::StrokePath(
-        path.clone(),
-        Stroke::rounded(GRIP_WIDTH + 2.0 * GRIP_HALO),
-        Paint::solid(GRIP_HALO_FILL),
-    ));
-    list.push(DrawCommand::StrokePath(
         path,
         Stroke::rounded(GRIP_WIDTH),
-        Paint::solid(GRIP_FILL),
+        Paint::solid(WHITE),
     ));
 }
 
-/// A thick stroke hugging the outline's bottom-right corner, dragged to resize.
+/// A white stroke hugging the outline's bottom-right corner, dragged to resize.
 fn grip(outline: Memo<Shape>) -> impl Listeners + View {
-    let radius = move |runtime: &mut Runtime| outline.get(runtime).radius.min(GRIP_REACH_CAP);
-    let edge = move |runtime: &mut Runtime| {
-        radius(runtime) * squircle::EXTENT + GRIP_RUN + 2.0 * GRIP_INSET
-    };
+    let radius = move |runtime: &mut Runtime| outline.get(runtime).radius;
+    let edge = move |runtime: &mut Runtime| radius(runtime) * squircle::EXTENT + 2.0 * GRIP_INSET;
     let bounds = move |runtime: &mut Runtime| outline.get(runtime).bounds;
     canvas(move |runtime, size, list| paint_grip(list, size, radius(runtime)))
         .absolute()

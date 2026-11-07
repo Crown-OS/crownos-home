@@ -1,5 +1,5 @@
 use crownos_home::{board::BoardSpec, ui};
-use crowntest::{Role, TestApp, role, text};
+use crowntest::{Role, TestApp, role};
 use crownui::prelude::Point;
 use input::{PointerButton, PointerEvent};
 use windowing::WindowEvent;
@@ -27,6 +27,12 @@ fn right_click(app: &mut TestApp, at: Point) {
         .settle();
 }
 
+fn open_gallery(app: &mut TestApp) {
+    right_click(app, EMPTY_DESKTOP);
+    app.click(role(Role::MenuItem).name("Add Widgets…"))
+        .settle();
+}
+
 #[test]
 fn a_right_click_on_the_desktop_offers_to_add_widgets() {
     let mut app = desktop();
@@ -39,28 +45,27 @@ fn a_right_click_on_the_desktop_offers_to_add_widgets() {
 #[test]
 fn add_widgets_opens_the_gallery_and_done_closes_it() {
     let mut app = desktop();
-    right_click(&mut app, EMPTY_DESKTOP);
-    app.click(role(Role::MenuItem).name("Add Widgets…"))
-        .settle();
+    open_gallery(&mut app);
     assert!(
         !app.exists(role(Role::MenuItem).name("Change Wallpaper…")),
         "the menu closes"
     );
     assert!(app.exists(role(Role::Dialog).name("Add Widgets")));
-    assert!(app.exists(role(Role::Button).name("Countdown")));
+    assert!(app.exists(role(Role::Button).name("Clock")));
     app.click(role(Role::Button).name("Done")).settle();
-    assert!(!app.exists(role(Role::Button).name("Countdown")));
+    assert!(!app.exists(role(Role::Button).name("Clock")));
 }
 
 #[test]
-fn a_click_on_a_gallery_card_adds_nothing_to_a_full_board() {
+fn a_click_on_a_gallery_card_adds_its_widget_where_there_is_room() {
     let mut app = desktop();
-    right_click(&mut app, EMPTY_DESKTOP);
-    app.click(role(Role::MenuItem).name("Add Widgets…"))
-        .settle();
-    let before = app.count(text("Till Birthday"));
-    app.click(role(Role::Button).name("Countdown")).settle();
-    assert_eq!(app.count(text("Till Birthday")), before);
+    open_gallery(&mut app);
+    let before = app.count(role(Role::Button).name("Remove Widget"));
+    app.click(role(Role::Button).name("Clock")).settle();
+    assert_eq!(
+        app.count(role(Role::Button).name("Remove Widget")),
+        before + 1
+    );
 }
 
 #[test]

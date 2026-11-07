@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+<defs>
+<mask id="groove" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000"><circle cx="500" cy="500" r="497" fill="#fff"/><circle cx="500" cy="500" r="240" fill="#000"/></mask>
+<filter id="spread" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="26"/></filter>
+<radialGradient id="rim" cx="500" cy="500" r="500" gradientUnits="userSpaceOnUse"><stop offset="0.9" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0.10"/></radialGradient>
+</defs>
+<g mask="url(#groove)"><g filter="url(#spread)"><path d="M500 500L-55 422L84 125Z" fill="#fff" opacity="0.22"/><path d="M500 500L1051 597L929 860Z" fill="#fff" opacity="0.16"/><path d="M500 500L701 -23L852 65Z" fill="#fff" opacity="0.1"/><path d="M500 500L290 1019L155 941Z" fill="#fff" opacity="0.08"/></g><circle cx="500" cy="500" r="500" fill="url(#rim)"/></g>
+</svg>

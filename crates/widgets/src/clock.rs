@@ -3,7 +3,7 @@
 use std::f32::consts::{FRAC_PI_2, TAU};
 
 use crownui::{
-    ext::{Brush, DrawCommand, DrawList, GradientStop, Paint, Path, Stroke},
+    ext::{DrawCommand, DrawList, Paint, Path, Stroke},
     prelude::{
         Color, CornerRadii, Cx, Memo, Point, Rect, Size, Styled, Vector, View, bind, canvas, text,
         vstack, zstack,
@@ -13,9 +13,10 @@ use jiff::{Zoned, tz::TimeZone};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Built, Env, Shape,
+    Built, Env, Shape, face,
     palette::{Dial, MATERIAL},
     scale::ink,
+    shape::{ROUNDING, TILE},
 };
 use crownhome_board::WidgetSpec;
 
@@ -30,8 +31,8 @@ const HOUR_HAND: (f32, f32) = (0.58, 0.044);
 const MINUTE_HAND: (f32, f32) = (0.95, 0.031);
 const SECOND_HAND: (f32, f32, f32) = (0.26, 0.97, 0.016);
 const PIVOT: (f32, f32) = (0.045, 0.021);
-const RIM: f32 = 1.25;
-const CORNER: f32 = 0.42;
+/// The corner as a fraction of the dial's half-edge, rounding like every other widget.
+const CORNER: f32 = 2.0 * ROUNDING / TILE.width;
 const PADDING: f32 = 0.12;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,33 +105,7 @@ fn reach(size: Size) -> (f32, f32) {
 fn paint_face(list: &mut DrawList, size: Size, dial: &Dial) {
     let (edge, radius) = reach(size);
     let center = Point::new(size.width / 2.0, size.height / 2.0);
-    let bounds = Rect::from_xywh(0.0, 0.0, size.width, size.height);
-    let stops = dial
-        .face
-        .iter()
-        .zip([0.0, 0.55, 1.0])
-        .map(|(color, offset)| GradientStop {
-            offset,
-            color: *color,
-        })
-        .collect();
-    let light = Paint {
-        brush: Brush::LinearGradient {
-            start: Point::new(size.width, 0.0),
-            end: Point::new(0.0, size.height),
-            stops,
-        },
-        blur: None,
-    };
-    let corner = edge * CORNER;
-    list.fill(bounds, CornerRadii::uniform(corner), light);
-    let ring = Rect::from_xywh(RIM / 2.0, RIM / 2.0, size.width - RIM, size.height - RIM);
-    list.stroke(
-        ring,
-        CornerRadii::uniform(corner - RIM / 2.0),
-        RIM,
-        Paint::solid(dial.face[1]),
-    );
+    face::paint(list, size, edge * CORNER, dial);
     let outer = radius * (1.0 - TICK_INSET);
     let (minutes, hours) = (0..60).fold((Path::new(), Path::new()), |(minutes, hours), minute| {
         let toward = direction(minute as f32 / 60.0);

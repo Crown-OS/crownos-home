@@ -4,10 +4,7 @@ use crownplugin_proto::{LauncherSize, LauncherSurface};
 use jiff::tz::TimeZone;
 use serde::Serialize;
 
-use crate::{
-    app, art::ArtName, calendar, clock, countdown, event, music, occasion::Occasion, plugin,
-    search, weather,
-};
+use crate::{calendar, clock, earbuds, folder, music, plugin, vinyl, weather};
 use crownhome_board::WidgetSpec;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -46,18 +43,13 @@ fn local_city(zone: Option<&str>) -> String {
         .map_or_else(|| "London".to_owned(), |city| city.replace('_', " "))
 }
 
-fn app(title: &str, desktop_id: &str, art: ArtName) -> Template {
-    let settings = app::Settings {
-        app: desktop_id.to_owned(),
-        art: Some(art),
-    };
-    template(title, app::KIND, (1, 1), &settings)
-}
+/// The home folders offered as folder cards, where they exist.
+const FOLDERS: [&str; 3] = ["Pictures", "Documents", "Downloads"];
 
 pub fn builtins() -> Vec<Template> {
     let system = TimeZone::system();
     let zone = system.iana_name();
-    vec![
+    let mut templates = vec![
         template(
             "Weather",
             weather::KIND,
@@ -75,42 +67,33 @@ pub fn builtins() -> Vec<Template> {
             (2, 2),
             &clock::Settings::in_zone(zone.map(str::to_owned)),
         ),
+        template("Music", music::KIND, (4, 2), &music::Settings::default()),
+        template("Vinyl", vinyl::KIND, (2, 2), &vinyl::Settings::default()),
         template(
-            "Up Next",
-            event::KIND,
-            (2, 1),
-            &Occasion {
-                title: "New Year's Day".to_owned(),
-                yearly: Some("01-01".to_owned()),
-                ..Occasion::default()
-            },
+            "Earbuds",
+            earbuds::KIND,
+            (2, 3),
+            &earbuds::Settings::default(),
         ),
-        template(
-            "Countdown",
-            countdown::KIND,
-            (2, 2),
-            &countdown::Settings {
-                title: "Till New Year".to_owned(),
-                date: None,
-                yearly: Some("01-01".to_owned()),
-                weekly: None,
-                color: None,
-            },
-        ),
-        template("Music", music::KIND, (2, 2), &music::Settings::default()),
         template(
             "Calendar",
             calendar::KIND,
             (4, 2),
             &calendar::Settings::default(),
         ),
-        template("Search", search::KIND, (3, 1), &toml::Table::new()),
-        app("Phone", "org.gnome.Calls", ArtName::Phone),
-        app("Messages", "sm.puri.Chatty", ArtName::Messages),
-        app("Calendar", "org.gnome.Calendar", ArtName::Calendar),
-        app("Notes", "org.gnome.TextEditor", ArtName::Notes),
-        app("Files", "org.gnome.Nautilus", ArtName::Files),
-    ]
+    ];
+    templates.extend(folders());
+    templates
+}
+
+/// A folder card for each of the usual folders the home directory has.
+fn folders() -> impl Iterator<Item = Template> {
+    FOLDERS.into_iter().filter_map(|name| {
+        let path = format!("~/{name}");
+        crownhome_services::folder::expand(&path)
+            .is_dir()
+            .then(|| template(name, folder::KIND, (2, 2), &folder::Settings::of(&path)))
+    })
 }
 
 /// A tile a plugin contributes, sized as the launcher would show it.
@@ -148,12 +131,11 @@ mod tests {
             let decoded = match spec.kind.as_str() {
                 weather::KIND => spec.decode::<weather::Settings>().map(drop),
                 clock::KIND => spec.decode::<clock::Settings>().map(drop),
-                event::KIND => spec.decode::<Occasion>().map(drop),
-                countdown::KIND => spec.decode::<countdown::Settings>().map(drop),
-                search::KIND => spec.decode::<search::Settings>().map(drop),
                 music::KIND => spec.decode::<music::Settings>().map(drop),
+                vinyl::KIND => spec.decode::<vinyl::Settings>().map(drop),
+                earbuds::KIND => spec.decode::<earbuds::Settings>().map(drop),
+                folder::KIND => spec.decode::<folder::Settings>().map(drop),
                 calendar::KIND => spec.decode::<calendar::Settings>().map(drop),
-                app::KIND => spec.decode::<app::Settings>().map(drop),
                 other => panic!("unexpected kind {other}"),
             };
             assert!(decoded.is_ok(), "{}: {decoded:?}", template.title);

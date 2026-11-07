@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+<defs>
+<linearGradient id="body" x1="0" y1="0" x2="0" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fbfbfc"/><stop offset="0.55" stop-color="#eff0f3"/><stop offset="1" stop-color="#e2e4e9"/></linearGradient>
+<linearGradient id="sides" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#c3c9d3"/><stop offset="0.13" stop-color="#d9dde5" stop-opacity="0.55"/><stop offset="0.3" stop-color="#fff" stop-opacity="0"/><stop offset="0.7" stop-color="#fff" stop-opacity="0"/><stop offset="0.87" stop-color="#d9dde5" stop-opacity="0.55"/><stop offset="1" stop-color="#c3c9d3"/></linearGradient>
+<radialGradient id="glow" cx="500" cy="60" r="520" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<clipPath id="outline"><rect width="1000" height="1000" rx="151.6"/></clipPath>
+<filter id="blur4" filterUnits="userSpaceOnUse" x="0" y="0" width="1000" height="1000"><feGaussianBlur stdDeviation="4"/></filter>
+</defs>
+<g clip-path="url(#outline)">
+<rect width="1000" height="1000" fill="url(#body)"/>
+<rect width="1000" height="1000" fill="url(#sides)"/>
+<rect width="1000" height="1000" fill="url(#glow)" opacity="0.8"/>
+<rect x="6" y="6" width="988" height="988" rx="145.6" fill="none" stroke="#fff" stroke-width="12" opacity="0.9" filter="url(#blur4)"/>
+<rect x="1.5" y="1.5" width="997" height="997" rx="150.1" fill="none" stroke="#b9bec7" stroke-width="3" opacity="0.6"/>
+</g>
+</svg>

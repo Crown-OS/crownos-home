@@ -11,7 +11,8 @@ use crownhome_services::weather::Forecast;
 const DESIGN_HEIGHT: f32 = 88.0;
 const DESIGN_WIDTH: f32 = 250.0;
 const FILL: f32 = 0.88;
-const ROUNDING: f32 = 28.0;
+/// Round ends.
+const ROUNDING: f32 = DESIGN_HEIGHT / 2.0;
 
 fn measure(size: Size) -> f32 {
     (size.height * FILL / DESIGN_HEIGHT).min(size.width / DESIGN_WIDTH)

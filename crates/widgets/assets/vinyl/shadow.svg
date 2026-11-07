@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+<defs><filter id="wide" filterUnits="userSpaceOnUse" x="0" y="0" width="1200" height="1200"><feGaussianBlur stdDeviation="46"/></filter>
+<filter id="near" filterUnits="userSpaceOnUse" x="0" y="0" width="1200" height="1200"><feGaussianBlur stdDeviation="20"/></filter>
+<filter id="contact" filterUnits="userSpaceOnUse" x="0" y="0" width="1200" height="1200"><feGaussianBlur stdDeviation="5"/></filter></defs>
+<circle cx="600" cy="624" r="479" fill="none" stroke="#5d6470" stroke-width="106" opacity="0.3" filter="url(#wide)"/>
+<circle cx="600" cy="608" r="488" fill="none" stroke="#2d3036" stroke-width="47" opacity="0.5" filter="url(#near)"/>
+<circle cx="600" cy="602" r="493" fill="none" stroke="#0d0e10" stroke-width="19" opacity="0.6" filter="url(#contact)"/>
+</svg>

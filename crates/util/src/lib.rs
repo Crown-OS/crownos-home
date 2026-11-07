@@ -1,11 +1,10 @@
 //! Helpers shared by the CrownOS home crates: atomic writes, XDG paths,
-//! desktop entries, icon lookup, colours and rasterising.
+//! colours and rasterising.
 
 pub mod atomic;
 pub mod color;
-pub mod desktop_entry;
-pub mod gpu_preference;
-pub mod icon;
+pub mod file_icon;
+pub mod photo;
 pub mod raster;
 pub mod squircle;
 pub mod uri;

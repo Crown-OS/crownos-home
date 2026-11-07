@@ -7,11 +7,10 @@ use crownui::{
 };
 
 use super::{MISSING, degrees, glyph, reading};
-use crate::{Env, Shape, art, scale::Scale};
+use crate::{Env, Shape, art, scale::Scale, shape::ROUNDING};
 use crownhome_services::weather::{Conditions, Forecast, Hour, Sky};
 
 const DESIGN: (f32, f32) = (237.5, 241.0);
-const ROUNDING: f32 = 30.0;
 const HOURS: usize = 3;
 const INK_SOFT: Color = rgba(0xFFFFFFD9);
 const BUBBLE: Color = rgba(0xFFFFFF1F);

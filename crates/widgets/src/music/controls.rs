@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use crownui::prelude::{
     BLACK, CursorIcon, Listeners, Memo, Role, Semantic, Signal, Styled, View, WHITE, bind, hstack,
-    icon, keyed, spacer, text, vstack,
+    icon, keyed, text, vstack,
 };
 
 use super::clock;
@@ -12,13 +12,15 @@ use crate::{
 };
 use crownhome_services::music::{self, Playback, Transport};
 
-const PREVIOUS: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M11.5 6.5v11L3.5 12zM20.5 6.5v11l-8-5.5z"/></svg>"#;
-const NEXT: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12.5 6.5v11l8-5.5zM3.5 6.5v11l8-5.5z"/></svg>"#;
-const PLAY: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M8 5.5v13l10.5-6.5z"/></svg>"#;
-const PAUSE: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><rect x="6.5" y="5" width="3.8" height="14" rx="1.2"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.2"/></svg>"#;
+pub(crate) const PREVIOUS: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M11.5 6.5v11L3.5 12zM20.5 6.5v11l-8-5.5z"/></svg>"#;
+pub(crate) const NEXT: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12.5 6.5v11l8-5.5zM3.5 6.5v11l8-5.5z"/></svg>"#;
+pub(crate) const PLAY: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M8 5.5v13l10.5-6.5z"/></svg>"#;
+pub(crate) const PAUSE: &str = r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><rect x="6.5" y="5" width="3.8" height="14" rx="1.2"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.2"/></svg>"#;
 const SKIP_EDGE: f32 = 22.0;
 const PLAY_EDGE: f32 = 42.0;
 const TIME_SIZE: f32 = 15.5;
+/// How long a player takes to report the track a skip moved it to.
+const PLAYER_CATCH_UP: Duration = Duration::from_millis(250);
 
 /// What `pressed` asks of the player, given whether it is playing now.
 fn command(pressed: Transport, playing: bool) -> Transport {
@@ -29,8 +31,9 @@ fn command(pressed: Transport, playing: bool) -> Transport {
     }
 }
 
-/// Sends `pressed` to wherever `playback` was read from, and shows a
-/// play/pause straight away instead of after the next read.
+/// Sends `pressed` to wherever `playback` was read from, shows a play/pause
+/// straight away, and reads the player again once it has acted instead of
+/// waiting for the next poll.
 fn press(cx: &mut crownui::prelude::Cx, playback: Signal<Option<Playback>>, pressed: Transport) {
     let Some((playing, source)) = playback.with(cx, |playback| {
         playback
@@ -50,10 +53,17 @@ fn press(cx: &mut crownui::prelude::Cx, playback: Signal<Option<Playback>>, pres
             }
         });
     }
-    cx.spawn(music::send(sent, source), |_, ()| {});
+    cx.spawn(
+        async move {
+            music::send(sent, source).await;
+            tokio::time::sleep(PLAYER_CATCH_UP).await;
+            music::now_playing().await
+        },
+        move |cx, fresh| playback.set(cx, fresh),
+    );
 }
 
-fn button(
+pub(crate) fn button(
     content: impl View,
     label: &'static str,
     playback: Signal<Option<Playback>>,
@@ -124,7 +134,7 @@ pub fn view(
     }))
     .text_size(scale.px(TIME_SIZE))
     .text_color(ink(palette, |palette| palette.ink_secondary));
-    hstack((
+    let buttons = hstack((
         button(
             skip(PREVIOUS),
             "Previous Track",
@@ -134,12 +144,18 @@ pub fn view(
         ),
         button(toggle, "Play or Pause", playback, Transport::Play, live),
         button(skip(NEXT), "Next Track", playback, Transport::Next, live),
-        spacer(),
-        hstack((elapsed, length)).items_baseline().shrink(0.0),
     ))
     .w_full()
     .items_center()
-    .gap(scale.px(7.0))
+    .justify_center()
+    .gap(scale.px(7.0));
+    let time = vstack(hstack((elapsed, length)).items_baseline())
+        .absolute()
+        .right(0.0)
+        .top(0.0)
+        .bottom(0.0)
+        .justify_center();
+    hstack((buttons, time)).relative().w_full()
 }
 
 #[cfg(test)]

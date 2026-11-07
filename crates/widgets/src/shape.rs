@@ -2,7 +2,15 @@
 
 use crownui::prelude::{Point, Rect, Size};
 
-pub const DEFAULT_ROUNDING: f32 = 28.0;
+/// The frame of a 2×2 tile.
+pub const TILE: Size = Size::new(237.5, 241.0);
+/// The corner every widget rounds to in a 2×2 tile; it grows and shrinks with the tile.
+pub const ROUNDING: f32 = 36.0;
+
+/// The corner of a widget filling a frame of `size`.
+pub fn rounding(size: Size) -> f32 {
+    ROUNDING * (size.width / TILE.width).min(size.height / TILE.height)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Shape {

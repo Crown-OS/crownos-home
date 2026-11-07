@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+<defs>
+<clipPath id="pocket"><rect x="12" y="12" width="976" height="976" rx="139.6"/></clipPath>
+<linearGradient id="face" x1="0" y1="535" x2="0" y2="1000" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#c4c4c8"/><stop offset="0.3" stop-color="#b9b9be"/><stop offset="0.7" stop-color="#cfcfd3"/><stop offset="1" stop-color="#dedee2"/></linearGradient>
+<linearGradient id="edge" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.65"/><stop offset="0.08" stop-color="#fff" stop-opacity="0"/><stop offset="0.92" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0.55"/></linearGradient>
+<filter id="blur5" filterUnits="userSpaceOnUse" x="0" y="400" width="1000" height="600"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="blur16" filterUnits="userSpaceOnUse" x="0" y="400" width="1000" height="600"><feGaussianBlur stdDeviation="16"/></filter>
+<filter id="blur30" filterUnits="userSpaceOnUse" x="0" y="400" width="1000" height="600"><feGaussianBlur stdDeviation="30"/></filter>
+<path id="rim" d="M12 605 Q12 539 78 537 L232 535 C306 535 330 612 500 612 C670 612 694 535 768 535 L922 537 Q988 539 988 605"/>
+<clipPath id="body"><path d="M12 1000 L12 605 Q12 539 78 537 L232 535 C306 535 330 612 500 612 C670 612 694 535 768 535 L922 537 Q988 539 988 605 L988 1000 Z"/></clipPath>
+</defs>
+<g clip-path="url(#pocket)">
+<g clip-path="url(#body)">
+<rect y="540" width="1000" height="460" fill="url(#face)" opacity="0.86"/>
+<rect y="540" width="1000" height="460" fill="url(#edge)"/>
+<use href="#rim" fill="none" stroke="#6f6f77" stroke-width="80" opacity="0.5" transform="translate(0 46)" filter="url(#blur30)"/>
+<use href="#rim" fill="none" stroke="#8b8b92" stroke-width="22" opacity="0.45" transform="translate(0 18)" filter="url(#blur16)"/>
+<path d="M60 780 C220 700 360 820 520 760 C680 700 820 790 960 730" fill="none" stroke="#fff" stroke-width="46" opacity="0.38" filter="url(#blur30)"/>
+<path d="M40 930 C240 860 420 960 612 900 C780 862 900 900 980 880" fill="none" stroke="#fff" stroke-width="60" opacity="0.5" filter="url(#blur30)"/>
+<path d="M120 690 C260 660 300 700 420 720" fill="none" stroke="#8a8a92" stroke-width="30" opacity="0.25" filter="url(#blur30)"/>
+<path d="M600 700 C700 730 780 690 900 700" fill="none" stroke="#8a8a92" stroke-width="26" opacity="0.2" filter="url(#blur30)"/>
+</g>
+<use href="#rim" fill="none" stroke="#9d9da4" stroke-width="16" opacity="0.5" transform="translate(0 9)" filter="url(#blur5)"/>
+<use href="#rim" fill="none" stroke="#f4f4f6" stroke-width="13"/>
+<use href="#rim" fill="none" stroke="#fff" stroke-width="4" transform="translate(0 -3)"/>
+</g>
+</svg>

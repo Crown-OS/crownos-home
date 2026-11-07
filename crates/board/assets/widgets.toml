@@ -28,24 +28,6 @@ latitude = 48.8566
 longitude = 2.3522
 
 [[widget]]
-kind = "app"
-column = 4
-row = 0
-
-[widget.settings]
-app = "org.gnome.Calls"
-art = "phone"
-
-[[widget]]
-kind = "app"
-column = 5
-row = 0
-
-[widget.settings]
-app = "sm.puri.Chatty"
-art = "messages"
-
-[[widget]]
 kind = "clock"
 column = 0
 row = 1
@@ -54,69 +36,3 @@ rows = 2
 
 [widget.settings]
 timezone = "Europe/Berlin"
-
-[[widget]]
-kind = "event"
-column = 2
-row = 1
-columns = 2
-
-[widget.settings]
-title = "Weekly Meeting"
-weekly = "sunday"
-start = "17:00"
-end = "18:00"
-
-[[widget]]
-kind = "event"
-column = 2
-row = 2
-columns = 2
-
-[widget.settings]
-title = "John's Birthday"
-yearly = "06-02"
-
-[[widget]]
-kind = "countdown"
-column = 4
-row = 1
-columns = 2
-rows = 2
-
-[widget.settings]
-title = "Till Birthday"
-yearly = "08-18"
-
-[[widget]]
-kind = "app"
-column = 0
-row = 3
-
-[widget.settings]
-app = "org.gnome.Calendar"
-art = "calendar"
-
-[[widget]]
-kind = "app"
-column = 1
-row = 3
-
-[widget.settings]
-app = "org.gnome.TextEditor"
-art = "notes"
-
-[[widget]]
-kind = "app"
-column = 2
-row = 3
-
-[widget.settings]
-app = "org.gnome.Nautilus"
-art = "files"
-
-[[widget]]
-kind = "search"
-column = 3
-row = 3
-columns = 3

@@ -9,17 +9,16 @@ use std::rc::Rc;
 
 use crownplugin_proto::{LauncherSurface, Part, SurfaceKey, Tree};
 use crownplugin_render::{EventSink, Resolver, render};
-use crownui::prelude::{Cx, Styled, View, keyed, vstack};
+use crownui::prelude::{Cx, Styled, View, bind, keyed, vstack};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedSender;
 
-use crate::{Built, Env, WidgetError, glass::glass};
+use crate::{Built, Env, WidgetError, glass::glass, shape::rounding};
 use crownhome_board::WidgetSpec;
 use crownhome_services::plugins::Interaction;
 
 pub const KIND: &str = "plugin";
 
-const ROUNDING: f32 = 28.0;
 const PADDING: f32 = 16.0;
 const SOURCE_PREFIX: &str = "plugin:";
 
@@ -102,7 +101,7 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
         .w_full()
         .h_full()
         .p(PADDING)
-        .rounded(ROUNDING)
+        .rounded(bind(move |runtime| rounding(env.size.get(runtime))))
         .overflow_hidden();
     Ok(glass(card, env, |palette| palette.frost).boxed())
 }

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240">
+<defs>
+<radialGradient id="halo" cx="200" cy="200" r="200" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 200) scale(1 0.75) translate(0 -200)">
+<stop offset="0" stop-color="#F4F6FF" stop-opacity="0.95"/>
+<stop offset="0.45" stop-color="#E4E8FF" stop-opacity="0.4"/>
+<stop offset="1" stop-color="#E4E8FF" stop-opacity="0"/>
+</radialGradient>
+<radialGradient id="core" cx="200" cy="200" r="150" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 200) scale(1 0.34) translate(0 -200)">
+<stop offset="0" stop-color="#FFFFFF"/>
+<stop offset="0.4" stop-color="#F6F4FF" stop-opacity="0.9"/>
+<stop offset="1" stop-color="#E8ECFF" stop-opacity="0"/>
+</radialGradient>
+</defs>
+<rect width="400" height="240" fill="url(#halo)"/>
+<rect width="400" height="240" fill="url(#core)"/>
+</svg>

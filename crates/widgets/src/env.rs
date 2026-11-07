@@ -30,6 +30,8 @@ pub struct Env {
     /// The frame the widget fills.
     pub size: Memo<Size>,
     pub finish: Finish,
+    /// Set while the widget reaches over its neighbours, to be drawn above them.
+    pub raised: Signal<bool>,
 }
 
 impl Env {

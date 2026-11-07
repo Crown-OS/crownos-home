@@ -8,14 +8,16 @@ mod schedule;
 use crownui::prelude::{Cx, Size, Styled, View, hstack};
 use serde::{Deserialize, Serialize};
 
-use crate::{Built, Env, Shape, glass::glass, scale::Scale};
+use crate::{Built, Env, Shape, face, scale::Scale, shape::ROUNDING};
 use crownhome_board::WidgetSpec;
 use crownhome_services::calendar::{self, Agenda};
 
 pub const KIND: &str = "calendar";
 
 const DESIGN: (f32, f32) = (512.5, 241.0);
-const ROUNDING: f32 = 30.0;
+const PADDING: f32 = 14.0;
+/// The day page's corner, concentric with the card's.
+const PAGE_ROUNDING: f32 = ROUNDING - PADDING;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -51,9 +53,9 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
     ))
     .w_full()
     .h_full()
-    .p(scale.px(14.0))
+    .p(scale.px(PADDING))
     .gap(scale.px(18.0))
     .rounded(scale.px(ROUNDING))
     .overflow_hidden();
-    Ok(glass(card, env, |palette| palette.frost).boxed())
+    Ok(face::under(card, env, scale.length(cx, ROUNDING)).boxed())
 }

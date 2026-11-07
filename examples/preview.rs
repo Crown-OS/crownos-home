@@ -4,7 +4,7 @@
 //!
 //! `cargo run --example preview -- <out.png> [wallpaper.jpg] [--dark]
 //!     [--board widgets.toml] [--hover x y] [--click x y] [--right-click x y]
-//!     [--drag x0 y0 x1 y1]`
+//!     [--drag x0 y0 x1 y1] [--drop x y file] [--wait ms]`
 
 use std::{
     any::Any,
@@ -25,7 +25,7 @@ use input::{PointerButton, PointerEvent};
 use runtime::InlineApp;
 use taffy_layout::TaffyEngine;
 use view::{TaskExecutor, TaskFuture, TaskId};
-use windowing::WindowEvent;
+use windowing::{DndAction, DndActions, DragOffer, DroppedData, WindowEvent};
 
 const SURFACE: Size = Size::new(1600.0, 1000.0);
 const SCALE: f32 = 1.0;
@@ -56,7 +56,11 @@ enum Action {
     Hover(Point),
     Click(Point, PointerButton),
     Drag(Point, Point),
+    Drop(Point, PathBuf),
+    Wait(Duration),
 }
+
+const URI_LIST: &str = "text/uri-list";
 
 fn wallpaper(path: Option<&PathBuf>) -> Result<Option<impl View>> {
     let Some(path) = path else {
@@ -97,8 +101,38 @@ fn settle(app: &mut App, tasks: &Receiver<Finished>) -> Result<()> {
     Ok(())
 }
 
+fn advance_by(app: &mut App, tasks: &Receiver<Finished>, span: Duration) -> Result<()> {
+    let frame = Duration::from_millis(16);
+    let mut passed = Duration::ZERO;
+    while passed < span {
+        while let Ok((id, output)) = tasks.try_recv() {
+            app.ui().complete_task(id, output);
+        }
+        app.advance(frame)?;
+        std::thread::sleep(Duration::from_millis(4));
+        passed += frame;
+    }
+    Ok(())
+}
+
 fn perform(app: &mut App, tasks: &Receiver<Finished>, action: &Action) -> Result<()> {
     match *action {
+        Action::Wait(span) => return advance_by(app, tasks, span),
+        Action::Drop(at, ref file) => {
+            app.handle(&WindowEvent::DragEnter(DragOffer {
+                position: at,
+                mime_types: vec![URI_LIST.to_owned()],
+                actions: DndActions::COPY_MOVE,
+            }))?;
+            advance_by(app, tasks, Duration::from_millis(300))?;
+            app.handle(&WindowEvent::Drop(DroppedData {
+                position: at,
+                mime_type: URI_LIST.to_owned(),
+                data: format!("file://{}\r\n", file.display()).into_bytes(),
+                action: DndAction::Copy,
+            }))?;
+            return Ok(());
+        }
         Action::Hover(at) => {
             app.handle(&WindowEvent::PointerMove(pointer(app, at, None)))?;
         }
@@ -162,6 +196,15 @@ fn main() -> Result<()> {
                 let from = Point::new(number(&mut arguments)?, number(&mut arguments)?);
                 let to = Point::new(number(&mut arguments)?, number(&mut arguments)?);
                 actions.push(Action::Drag(from, to));
+            }
+            "--drop" => {
+                let at = Point::new(number(&mut arguments)?, number(&mut arguments)?);
+                let file = arguments.next().context("a file to drop")?;
+                actions.push(Action::Drop(at, PathBuf::from(file)));
+            }
+            "--wait" => {
+                let millis = arguments.next().context("milliseconds")?.parse()?;
+                actions.push(Action::Wait(Duration::from_millis(millis)));
             }
             flag if flag.starts_with("--") => bail!("unknown flag {flag}"),
             _ => positional.push(PathBuf::from(argument)),

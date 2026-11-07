@@ -47,6 +47,7 @@ fn card(cx: &mut Cx, desk: Desk, template: Template, palette: &Palette) -> impl 
         ambient: desk.ambient,
         size: cx.memo(move |_| size),
         finish: Finish::Sample,
+        raised: cx.signal(false),
     };
     let preview = vstack(crownhome_widgets::view(cx, &spec, env))
         .w(size.width)
@@ -147,12 +148,8 @@ fn header(desk: Desk, palette: &Palette) -> impl View + use<> {
 
 fn pane(cx: &mut Cx, desk: Desk) -> impl View + use<> {
     let palette = desk.ambient.palette.get(cx);
-    let (apps, widgets): (Vec<_>, Vec<_>) = catalog::builtins()
-        .into_iter()
-        .partition(|template| template.spec.kind == crownhome_widgets::app::KIND);
     let sections = vstack((
-        section(cx, desk, "Widgets", widgets, &palette),
-        section(cx, desk, "Apps", apps, &palette),
+        section(cx, desk, "Widgets", catalog::builtins(), &palette),
         plugins(desk, palette),
     ))
     .gap(22.0)

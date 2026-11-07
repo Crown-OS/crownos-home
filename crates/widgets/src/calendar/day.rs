@@ -10,7 +10,6 @@ use crate::{
 };
 
 const TODAY_INK: Color = rgb(0xF0453A);
-const PAGE_ROUNDING: f32 = 22.0;
 const DAY_CIRCLE: f32 = 30.0;
 
 fn header(summary: Memo<Summary>, env: Env, scale: Scale) -> impl View {
@@ -102,7 +101,7 @@ pub fn view(summary: Memo<Summary>, env: Env, scale: Scale) -> impl View {
     .px(scale.px(14.0))
     .pt(scale.px(8.0))
     .pb(scale.px(12.0))
-    .rounded(scale.px(PAGE_ROUNDING))
+    .rounded(scale.px(super::PAGE_ROUNDING))
     .bg(ink(palette, |palette| palette.ink.with_alpha_factor(0.05)));
     let note = text(bind(move |runtime| {
         summary.with(runtime, |summary| {

@@ -1,6 +1,6 @@
 [package]
 name = "crownhome-services"
-description = "The clock, launcher, plugin daemon and online feeds the CrownOS home widgets read"
+description = "The clock, plugin daemon and online feeds the CrownOS home widgets read"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
