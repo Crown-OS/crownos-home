@@ -6,5 +6,6 @@ pub mod clock;
 pub mod crownpad;
 pub mod launch;
 pub mod music;
+mod non_default_gpu;
 pub mod plugins;
 pub mod weather;

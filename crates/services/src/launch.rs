@@ -5,26 +5,37 @@ use std::{
     process::{Command, Stdio},
 };
 
-use crownhome_util::desktop_entry::DesktopEntry;
+use crownhome_util::{desktop_entry::DesktopEntry, gpu_preference::GpuPreference};
+
+use crate::non_default_gpu;
 
 /// Starts the app `desktop_file` describes.
 pub fn start(desktop_file: PathBuf) {
     match command(&desktop_file) {
-        Some(argv) => run(argv),
+        Some((argv, gpu)) => spawn(argv, gpu),
         None => log::warn!("{} has nothing to run", desktop_file.display()),
     }
+}
+
+pub fn run(argv: Vec<String>) {
+    spawn(argv, GpuPreference::Default);
 }
 
 /// Runs `argv` off the UI thread. `setsid --fork` gives it a session of its
 /// own and returns at once, so it outlives the desktop and is never left
 /// behind as its zombie.
-pub fn run(argv: Vec<String>) {
+fn spawn(argv: Vec<String>, gpu: GpuPreference) {
     let spawned = std::thread::Builder::new()
         .name("crownos-home-launch".into())
         .spawn(move || {
             let started = Command::new("setsid")
                 .arg("--fork")
                 .args(&argv)
+                .envs(
+                    non_default_gpu::environment(gpu)
+                        .iter()
+                        .map(|(key, value)| (key, value)),
+                )
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
@@ -38,9 +49,10 @@ pub fn run(argv: Vec<String>) {
     }
 }
 
-fn command(desktop_file: &Path) -> Option<Vec<String>> {
-    let exec = DesktopEntry::read(desktop_file)?.exec?;
-    Some(split_exec(&strip_field_codes(&exec))).filter(|argv| !argv.is_empty())
+fn command(desktop_file: &Path) -> Option<(Vec<String>, GpuPreference)> {
+    let entry = DesktopEntry::read(desktop_file)?;
+    let argv = split_exec(&strip_field_codes(entry.exec.as_deref()?));
+    (!argv.is_empty()).then_some((argv, entry.gpu))
 }
 
 /// Removes the `%f`, `%U`… placeholders a desktop entry's `Exec` may carry.
