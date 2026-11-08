@@ -14,7 +14,7 @@ crownhome-board = { path = "crates/board" }
 crownhome-services = { path = "crates/services" }
 crownhome-util = { path = "crates/util" }
 crownhome-widgets = { path = "crates/widgets" }
-crownos-accounts = { path = "crates/accounts" }
+crownos-accounts = { path = "../crownos-accounts" }
 
 crownui = { path = "../crownui/crownui", default-features = false, features = ["wayland", "impeller", "static", "tokio"] }
 geometry = { path = "../crownui/geometry" }
