@@ -78,7 +78,6 @@ fn placeholder(env: Env) -> AnyView {
             .h_full()
             .rounded(bind(move |runtime| shape::rounding(env.size.get(runtime)))),
         env,
-        |palette| palette.frost,
     )
     .boxed()
 }

@@ -233,7 +233,7 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
         .w(bind(move |runtime| 2.0 * radius.get(runtime)))
         .h(bind(move |runtime| 2.0 * radius.get(runtime)))
         .rounded(bind(move |runtime| radius.get(runtime) * CORNER));
-    let dial = if env.is_live() {
+    let dial = if env.is_frosted() {
         dial.material(MATERIAL)
     } else {
         dial

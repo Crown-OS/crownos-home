@@ -69,7 +69,7 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
     .h(edge)
     .rounded(scale.px(CORNER))
     .overflow_hidden();
-    let case = if env.is_live() {
+    let case = if env.is_frosted() {
         case.material(MATERIAL)
     } else {
         case

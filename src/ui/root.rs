@@ -125,13 +125,11 @@ fn press_elsewhere(cx: &mut Cx, desk: Desk) {
 pub fn root(spec: BoardSpec, file: Option<PathBuf>) -> impl View {
     component(move |cx| {
         let theme = provide_configured_theme(cx);
-        let capabilities = cx.platform_capabilities();
         let palette = cx.memo(move |runtime| {
             let (dark, accent) = theme.with(runtime, |theme| {
                 (matches!(theme.mode, ThemeMode::Dark), theme.accent.start)
             });
-            let blurred = capabilities.with(runtime, |capabilities| capabilities.materials);
-            Palette::new(dark, accent, blurred)
+            Palette::new(dark, accent)
         });
         let ambient = Ambient {
             now: clock::start(cx),

@@ -103,7 +103,7 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
         .p(PADDING)
         .rounded(bind(move |runtime| rounding(env.size.get(runtime))))
         .overflow_hidden();
-    Ok(glass(card, env, |palette| palette.frost).boxed())
+    Ok(glass(card, env).boxed())
 }
 
 #[cfg(test)]

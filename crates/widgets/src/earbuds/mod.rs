@@ -62,7 +62,7 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
     .bg(rgb(NIGHT))
     .rounded(bind(move |runtime| rounding(size.get(runtime))))
     .overflow_hidden();
-    Ok(if env.is_live() {
+    Ok(if env.is_frosted() {
         card.material(MATERIAL).boxed()
     } else {
         card.boxed()

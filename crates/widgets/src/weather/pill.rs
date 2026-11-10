@@ -77,8 +77,5 @@ pub fn view(cx: &mut Cx, name: &str, forecast: Signal<Option<Forecast>>, env: En
     .pr(scale.px(14.0))
     .rounded(scale.px(ROUNDING))
     .overflow_hidden();
-    vstack(glass(pill, env, |palette| palette.frost))
-        .w_full()
-        .h_full()
-        .justify_center()
+    vstack(glass(pill, env)).w_full().h_full().justify_center()
 }

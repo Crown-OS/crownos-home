@@ -22,6 +22,8 @@ pub enum Finish {
     Live,
     /// In the gallery: tinted glass only, sample data, no background work.
     Sample,
+    /// On a design sheet: frosted like the board, sample data, no background work.
+    Showcase,
 }
 
 #[derive(Clone, Copy)]
@@ -37,5 +39,10 @@ pub struct Env {
 impl Env {
     pub fn is_live(&self) -> bool {
         self.finish == Finish::Live
+    }
+
+    /// Whether the wallpaper behind the widget is blurred.
+    pub fn is_frosted(&self) -> bool {
+        self.finish != Finish::Sample
     }
 }

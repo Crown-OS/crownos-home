@@ -432,6 +432,7 @@ dependencies = [
  "image",
  "impeller",
  "input",
+ "jiff",
  "log",
  "runtime",
  "taffy-layout",
