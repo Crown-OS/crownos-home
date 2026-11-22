@@ -1,16 +1,18 @@
 //! A folder on disk as a frosted card: its newest files stand in it as
-//! papers, rise when the pointer comes over, and spread out to be opened.
-//! Files dropped on it, or added with its button, fall in and light it up.
+//! papers, rise when the pointer comes over, and spread out over it when it
+//! is clicked, its front tipping toward the viewer. Files dropped on it, or
+//! added with its button, fall in and light it up.
 
 mod delivery;
 mod front;
 mod label;
 mod papers;
+mod tipping;
 
 use std::{path::PathBuf, rc::Rc};
 
 use crownui::prelude::{
-    CursorIcon, Cx, Listeners, Memo, Rect, Role, Runtime, Semantic, Signal, Size, Spring, Styled,
+    CursorIcon, Cx, Listeners, Memo, Rect, Role, Runtime, Semantic, Signal, Size, Styled, Vector,
     View, bind, canvas, keyed, vstack, zstack,
 };
 use serde::{Deserialize, Serialize};
@@ -20,20 +22,20 @@ use crownhome_board::WidgetSpec;
 use crownhome_services::folder::{self, Entry, Kind, Listing};
 use crownhome_util::{photo::Print, raster::Pixels, uri};
 use delivery::Delivery;
-use front::{Piece, Tone};
+use front::{Tip, Tone};
 
 pub const KIND: &str = "folder";
 
 /// The widget is drawn in a 2×2 tile, in design points.
 const DESIGN: (f32, f32) = (237.5, 241.0);
 /// The newest paper at rest: left, top, width and height.
-const PAPER: (f32, f32, f32, f32) = (16.0, 34.0, 206.0, 138.0);
+const PAPER: (f32, f32, f32, f32) = (24.0, 76.0, 189.5, 133.0);
 /// The front pane: left, top, width and height.
-const FRONT: (f32, f32, f32, f32) = (4.0, 76.0, 229.5, 165.0);
+const FRONT: (f32, f32, f32, f32) = (4.0, 98.0, 229.5, 143.0);
+/// The back pane, whose tab stands a little higher than the front's.
+const BACK: (f32, f32, f32, f32) = (4.0, 75.0, 229.5, 166.0);
 /// Where the outline the edit handles hug begins.
-const OUTLINE_TOP: f32 = 26.0;
-/// How far spread papers and arriving names reach past the sides and the top.
-const SPILL: (f32, f32) = (90.0, 140.0);
+const OUTLINE_TOP: f32 = BACK.1;
 /// The edge of the theme's picture on a paper.
 const ICON: f32 = 64.0;
 
@@ -66,16 +68,63 @@ impl Settings {
 }
 
 /// Whether the pointer or a drag of files is over the folder, whether it is
-/// spread open, and the files arriving in it.
+/// spread open, and the files arriving in it. Closed under the pointer, the
+/// papers stay down until the pointer leaves.
 #[derive(Clone, Copy)]
 pub(crate) struct State {
     pub hovered: Signal<bool>,
     pub dragging: Signal<bool>,
     pub opened: Signal<bool>,
+    pub closed_under_pointer: Signal<bool>,
     pub delivery: Signal<Option<Delivery>>,
 }
 
+/// How the papers stand in the folder.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Stance {
+    Resting,
+    Lifted,
+    Spread,
+}
+
 impl State {
+    pub fn stance(self, runtime: &mut Runtime) -> Stance {
+        let pointed_at = self.hovered.get(runtime) && !self.closed_under_pointer.get(runtime);
+        if self.opened.get(runtime) {
+            Stance::Spread
+        } else if pointed_at || self.receiving(runtime) {
+            Stance::Lifted
+        } else {
+            Stance::Resting
+        }
+    }
+
+    pub fn open(self, cx: &mut Cx) {
+        self.opened.set(cx, true);
+    }
+
+    pub fn close(self, cx: &mut Cx) {
+        self.opened.set(cx, false);
+        if self.hovered.get(cx) {
+            self.closed_under_pointer.set(cx, true);
+        }
+    }
+
+    fn toggle(self, cx: &mut Cx) {
+        if self.opened.get(cx) {
+            self.close(cx);
+        } else {
+            self.open(cx);
+        }
+    }
+
+    fn point_at(self, cx: &mut Cx, inside: bool) {
+        self.hovered.set(cx, inside);
+        if !inside {
+            self.closed_under_pointer.set(cx, false);
+        }
+    }
+
     /// Whether files are on their way in, so the folder holds itself open.
     pub fn receiving(self, runtime: &mut Runtime) -> bool {
         self.dragging.get(runtime)
@@ -235,24 +284,7 @@ fn load_looks(cx: &mut Cx, newest: &[Entry], sizes: Sizes, looks: Signal<Looks>)
     looks.set(cx, carried);
 }
 
-/// The front pane, frosted over the newest photo's haze.
-fn pane(cx: &mut Cx, newest: Option<Rc<Print>>, piece: Piece, scale: Scale) -> impl View + use<> {
-    let tone = Tone::of(newest.as_ref().is_some_and(|print| print.dark));
-    let haze = newest.map(|print| {
-        let haze = &print.haze;
-        let id = cx.register_image(haze.width, haze.height, haze.rgba.clone());
-        cx.release_image_on_cleanup(id);
-        id
-    });
-    let factor = scale.factor();
-    canvas(move |runtime, size, list| {
-        front::paint(list, size, factor.get(runtime), piece, tone, haze);
-    })
-    .w_full()
-    .h_full()
-}
-
-/// The newest photo among the papers, which the front is frosted over.
+/// The newest photo among the papers, which sets how dark the panes are.
 fn newest_print(looks: Signal<Looks>) -> impl Fn(&mut Runtime) -> Option<Rc<Print>> {
     move |runtime| {
         looks.with(runtime, |looks| {
@@ -303,10 +335,14 @@ fn take_drops(
         })
 }
 
-/// Keeps the widget drawn above its neighbours while anything of it reaches over them.
-fn raise_while_spilling(cx: &mut Cx, state: State, raised: Signal<bool>) {
+/// Keeps the widget drawn above its neighbours while anything of it reaches
+/// over them, until spread papers have settled back in.
+fn raise_while_spilling(cx: &mut Cx, state: State, tip: Signal<Tip>, raised: Signal<bool>) {
     cx.effect(move |runtime| {
-        let spilling = state.opened.get(runtime) || state.delivery.with(runtime, Option::is_some);
+        let settling_back = tip.get(runtime).0 > tipping::LIFTED + 0.01;
+        let spilling = state.opened.get(runtime)
+            || settling_back
+            || state.delivery.with(runtime, Option::is_some);
         if raised.get(runtime) != spilling {
             raised.set(runtime, spilling);
         }
@@ -327,9 +363,11 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
         hovered: cx.signal(false),
         dragging: cx.signal(false),
         opened: cx.signal(false),
+        closed_under_pointer: cx.signal(false),
         delivery: cx.signal(None),
     };
-    raise_while_spilling(cx, state, env.raised);
+    let (tip, tipper) = tipping::follow(cx, state);
+    raise_while_spilling(cx, state, tip, env.raised);
     let scale = Scale::new(cx, env.size, measure);
     let looks = cx.signal(Looks::new());
     let device_scale = cx.scale_factor();
@@ -370,34 +408,41 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
     let tone = cx.memo(move |runtime| {
         Tone::of(newest_print(looks)(runtime).is_some_and(|print| print.dark))
     });
-    let reach = vstack((
+    let back = place(
+        canvas(move |runtime, size, list| {
+            let factor = factor.get(runtime);
+            let front = (
+                Vector::new(FRONT.0 - BACK.0, FRONT.1 - BACK.1) * factor,
+                Size::new(FRONT.2 * factor, FRONT.3 * factor),
+                tip.get(runtime),
+            );
+            front::paint_back(list, size, factor, tone.get(runtime), front);
+        })
+        .pointer_events_none(),
+        BACK,
+        scale,
+    );
+    let inside = vstack((
         loader,
+        tipper,
         shown,
         delivery::chips(state, dir.clone(), tone, scale),
         delivery::light_inside(cx, state, scale),
     ))
     .absolute()
-    .left(scale.px(SPILL.0))
-    .top(scale.px(SPILL.1))
-    .w(scale.px(DESIGN.0))
-    .h(scale.px(DESIGN.1));
-    let papers = vstack(reach)
-        .absolute()
-        .left(scale.px(-SPILL.0))
-        .top(scale.px(-SPILL.1))
-        .w(scale.px(DESIGN.0 + 2.0 * SPILL.0))
-        .h(scale.px(SPILL.1 + FRONT.1 + front::TAB_HEIGHT))
-        .overflow_hidden()
-        .pointer_events_none();
+    .inset(0.0)
+    .pointer_events_none();
     let opened_dir = dir.clone();
-    let body = place(
-        vstack(
-            keyed(newest_print(looks), move |cx, print| {
-                pane(cx, print, Piece::Whole, scale)
-            })
-            .w_full()
-            .h_full(),
-        ),
+    let pane = place(
+        canvas(move |runtime, size, list| {
+            front::paint_front(
+                list,
+                size,
+                factor.get(runtime),
+                tone.get(runtime),
+                tip.get(runtime),
+            );
+        }),
         FRONT,
         scale,
     )
@@ -406,37 +451,20 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
     .label(format!("Open {title}"))
     .on_click(move |cx, event| {
         event.stop_propagation();
-        if state.opened.get(cx) {
-            folder::open(&opened_dir);
-        } else {
-            state.opened.set(cx, true);
+        if event.count == 1 {
+            state.toggle(cx);
         }
+    })
+    .on_double_click(move |cx, event| {
+        event.stop_propagation();
+        state.close(cx);
+        folder::open(&opened_dir);
     });
-    let tab = place(
-        vstack(
-            keyed(newest_print(looks), move |cx, print| {
-                pane(cx, print, Piece::Tab, scale)
-            })
-            .w_full()
-            .h_full(),
-        )
-        .pointer_events_none()
-        .opacity(bind(move |runtime| shown_when(!state.opened.get(runtime))))
-        .transition(Spring::snappy()),
+    let light = place(
+        delivery::light_through(state, tone, tip, scale),
         FRONT,
         scale,
     );
-    let solid = place(
-        canvas(move |runtime, size, list| {
-            front::paint_solid(list, size, factor.get(runtime), tone.get(runtime));
-        })
-        .pointer_events_none()
-        .opacity(bind(move |runtime| shown_when(state.opened.get(runtime))))
-        .transition(Spring::snappy()),
-        FRONT,
-        scale,
-    );
-    let light = place(delivery::light_through(state, tone, scale), FRONT, scale);
     let count = cx.memo(move |runtime| {
         listing.with(runtime, |listing| {
             listing.as_ref().map(|listing| listing.count)
@@ -446,15 +474,18 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> Built {
         label::view(title, count, dir.clone(), listing, tone, state, scale),
         FRONT,
         scale,
-    );
-    let stage = zstack((body, papers, tab, solid, light, caption))
+    )
+    .translate(bind(move |runtime| {
+        Vector::new(0.0, tip.get(runtime).drop() * factor.get(runtime))
+    }));
+    let stage = zstack((back, inside, pane, light, caption))
         .relative()
         .w(scale.px(DESIGN.0))
         .h(scale.px(DESIGN.1))
         .role(Role::Group)
         .label("Folder")
-        .on_pointer_enter(move |cx, _| state.hovered.set(cx, true))
-        .on_pointer_leave(move |cx, _| state.hovered.set(cx, false));
+        .on_pointer_enter(move |cx, _| state.point_at(cx, true))
+        .on_pointer_leave(move |cx, _| state.point_at(cx, false));
     let stage = if env.is_live() {
         take_drops(stage, state, dir, listing).boxed()
     } else {

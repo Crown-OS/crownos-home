@@ -9,58 +9,57 @@ use crownui::prelude::{
     Vector, View, image, keyed, rgb, spacer, text, vstack,
 };
 
-use super::{Look, Looks, PAPER, State};
+use super::{Look, Looks, PAPER, Stance, State};
 use crate::scale::Scale;
 use crownhome_services::folder::{self, Entry, Kind};
 use crownhome_util::raster::Pixels;
 
-const CORNER: f32 = 14.0;
-const FANNED_SCALE: f32 = 0.94;
+const CORNER: f32 = 12.0;
 const DOCUMENT_ICON: f32 = 64.0;
 const DOCUMENT: u32 = 0xFBFBFC;
 const WAITING: u32 = 0xE4E4E8;
 const DOCUMENT_INK: u32 = 0x1C1C1E;
 
-/// Where a paper stands, as an offset from its place in design points, a
-/// turn in degrees and a scale.
+/// Where a paper stands, as an offset from its place in design points and a
+/// turn in degrees.
 #[derive(Debug, Clone, Copy, PartialEq)]
 struct Pose {
     offset: (f32, f32),
     turn: f32,
-    scale: f32,
 }
 
-const fn pose(x: f32, y: f32, turn: f32, scale: f32) -> Pose {
+const fn pose(x: f32, y: f32, turn: f32) -> Pose {
     Pose {
         offset: (x, y),
         turn,
-        scale,
     }
 }
 
-/// Resting, lifted and spread out, for the paper `index` of `count`, the newest first:
-/// it ends up in front and to the right, the older ones fanning off to the left.
+/// Resting, lifted and spread out, for the paper `index` of `count`, the newest first.
+/// Lifted, the newest rises highest and leans right while the older ones step
+/// down to the left behind it; spread, the newest leads on the right and the
+/// older ones fan off to the left.
 fn poses(index: usize, count: usize) -> [Pose; 3] {
     const RESTING: [Pose; 3] = [
-        pose(0.0, 0.0, 0.0, 1.0),
-        pose(-7.0, 5.0, -4.0, 1.0),
-        pose(8.0, 8.0, 4.0, 1.0),
+        pose(0.0, 0.0, 0.0),
+        pose(0.0, 16.0, 0.0),
+        pose(0.0, 28.0, 0.0),
     ];
     const LIFTED: [Pose; 3] = [
-        pose(0.0, -14.0, 0.0, 1.0),
-        pose(-13.0, -6.0, -7.0, 1.0),
-        pose(14.0, -3.0, 7.0, 1.0),
+        pose(6.0, -62.0, 3.0),
+        pose(3.0, -50.0, -3.0),
+        pose(-6.0, -33.0, -6.0),
     ];
-    let fanned = match (count, index) {
-        (1, _) => pose(4.0, -134.0, 3.0, FANNED_SCALE),
-        (2, 0) => pose(40.0, -134.0, 7.0, FANNED_SCALE),
-        (2, _) => pose(-40.0, -122.0, -6.0, FANNED_SCALE),
-        (_, 0) => pose(64.0, -138.0, 8.0, FANNED_SCALE),
-        (_, 1) => pose(2.0, -130.0, -2.0, FANNED_SCALE),
-        _ => pose(-66.0, -116.0, -9.0, FANNED_SCALE),
+    let spread = match (count, index) {
+        (1, _) => pose(0.0, -158.0, 2.0),
+        (2, 0) => pose(42.0, -150.0, 6.0),
+        (2, _) => pose(-46.0, -142.0, -7.0),
+        (_, 0) => pose(72.0, -144.0, 7.0),
+        (_, 1) => pose(0.0, -161.0, 0.0),
+        _ => pose(-87.0, -139.0, -10.0),
     };
     let slot = index.min(2);
-    [RESTING[slot], LIFTED[slot], fanned]
+    [RESTING[slot], LIFTED[slot], spread]
 }
 
 /// What kind of file `entry` is, in a word, for when the theme has no picture of it.
@@ -138,16 +137,12 @@ fn paper(
     state: State,
     scale: Scale,
 ) -> impl View {
-    let [resting, lifted, fanned] = poses(index, count);
+    let [resting, lifted, spread] = poses(index, count);
     let factor = scale.factor();
-    let now = move |runtime: &mut Runtime| {
-        if state.opened.get(runtime) {
-            fanned
-        } else if state.hovered.get(runtime) || state.receiving(runtime) {
-            lifted
-        } else {
-            resting
-        }
+    let now = move |runtime: &mut Runtime| match state.stance(runtime) {
+        Stance::Resting => resting,
+        Stance::Lifted => lifted,
+        Stance::Spread => spread,
     };
     let shown = entry.clone();
     let wanted = entry.path.clone();
@@ -173,19 +168,18 @@ fn paper(
         .h(scale.px(PAPER.3))
         .rounded(scale.px(CORNER))
         .overflow_hidden()
-        .border(1.0)
-        .border_color(Color::new(1.0, 1.0, 1.0, 0.6))
+        .border(1.5)
+        .border_color(Color::new(1.0, 1.0, 1.0, 0.85))
         .shadow(Shadow::new(
-            Color::new(0.0, 0.0, 0.0, 0.16),
-            14.0,
-            Vector::new(0.0, 6.0),
+            Color::new(0.0, 0.0, 0.0, 0.14),
+            18.0,
+            Vector::new(0.0, 8.0),
         ))
         .translate(crownui::prelude::bind(move |runtime| {
             let (x, y) = now(runtime).offset;
             Vector::new(x, y) * factor.get(runtime)
         }))
         .rotate(crownui::prelude::bind(move |runtime| now(runtime).turn))
-        .scale(crownui::prelude::bind(move |runtime| now(runtime).scale))
         .transition(Spring::snappy())
         .pointer_events_auto()
         .cursor(CursorIcon::Pointer)
@@ -196,7 +190,7 @@ fn paper(
             if state.opened.get(cx) {
                 folder::open(&path);
             } else {
-                state.opened.set(cx, true);
+                state.open(cx);
             }
         })
 }
@@ -227,16 +221,21 @@ mod tests {
         let [newest, middle, oldest] = [0, 1, 2].map(|index| poses(index, 3)[2]);
         assert!(oldest.offset.0 < middle.offset.0 && middle.offset.0 < newest.offset.0);
         assert!(oldest.turn < 0.0 && newest.turn > 0.0);
-        assert!(newest.offset.1 < oldest.offset.1);
+    }
+
+    #[test]
+    fn lifted_papers_step_down_to_the_left_behind_the_newest() {
+        let [newest, middle, oldest] = [0, 1, 2].map(|index| poses(index, 3)[1]);
+        assert!(newest.offset.1 < middle.offset.1 && middle.offset.1 < oldest.offset.1);
+        assert!(oldest.offset.0 < middle.offset.0 && newest.turn > 0.0 && oldest.turn < 0.0);
     }
 
     #[test]
     fn spread_papers_clear_the_front() {
         for count in 1..=3 {
             for index in 0..count {
-                let [_, _, fanned] = poses(index, count);
-                let half_height = PAPER.3 * fanned.scale / 2.0;
-                let bottom = PAPER.1 + PAPER.3 / 2.0 + fanned.offset.1 + half_height;
+                let [_, _, spread] = poses(index, count);
+                let bottom = PAPER.1 + PAPER.3 + spread.offset.1;
                 assert!(bottom < super::super::FRONT.1, "{index} of {count}");
             }
         }

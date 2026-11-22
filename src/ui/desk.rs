@@ -9,7 +9,7 @@ use crownhome_board::{
     Area, BoardGrid, BoardSpec, GridSpec, Tile, TileId, WidgetSpec,
     tile::{self, numbered},
 };
-use crownhome_widgets::Ambient;
+use crownhome_widgets::{Ambient, Finish};
 
 /// Where a context menu was opened, and on which widget.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -33,10 +33,18 @@ pub struct Desk {
     pub pointer: Signal<Point>,
     file: Signal<Option<PathBuf>>,
     pub ambient: Ambient,
+    /// How the widgets on the board are finished.
+    pub finish: Finish,
 }
 
 impl Desk {
-    pub fn new(cx: &mut Cx, spec: BoardSpec, file: Option<PathBuf>, ambient: Ambient) -> Self {
+    pub fn new(
+        cx: &mut Cx,
+        spec: BoardSpec,
+        file: Option<PathBuf>,
+        ambient: Ambient,
+        finish: Finish,
+    ) -> Self {
         Self {
             grid: spec.grid,
             tiles: cx.signal(numbered(spec.widgets)),
@@ -48,6 +56,7 @@ impl Desk {
             pointer: cx.signal(Point::new(0.0, 0.0)),
             file: cx.signal(file),
             ambient,
+            finish,
         }
     }
 

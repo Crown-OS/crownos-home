@@ -5,8 +5,8 @@ use std::path::PathBuf;
 use crownui::{
     kit::{INTER_FAMILY, ThemeMode, provide_configured_theme},
     prelude::{
-        Color, Cx, Listeners, Rect, Role, Runtime, Semantic, Spring, Styled, View, bind, component,
-        keyed, rgba, vstack, zstack,
+        Color, Cx, Listeners, Memo, Rect, Role, Runtime, Semantic, Spring, Styled, View, bind,
+        component, keyed, rgba, vstack, zstack,
     },
 };
 
@@ -123,6 +123,21 @@ fn press_elsewhere(cx: &mut Cx, desk: Desk) {
 }
 
 pub fn root(spec: BoardSpec, file: Option<PathBuf>) -> impl View {
+    desktop(spec, file, Finish::Live, |cx, palette| Ambient {
+        now: clock::start(cx),
+        palette,
+        plugins: Plugins::start(cx),
+    })
+}
+
+/// The desktop with its widgets finished as `finish`, sharing the time and
+/// plugin tiles `ambient` starts.
+pub fn desktop(
+    spec: BoardSpec,
+    file: Option<PathBuf>,
+    finish: Finish,
+    ambient: impl FnOnce(&mut Cx, Memo<Palette>) -> Ambient + 'static,
+) -> impl View {
     component(move |cx| {
         let theme = provide_configured_theme(cx);
         let palette = cx.memo(move |runtime| {
@@ -131,12 +146,8 @@ pub fn root(spec: BoardSpec, file: Option<PathBuf>) -> impl View {
             });
             Palette::new(dark, accent)
         });
-        let ambient = Ambient {
-            now: clock::start(cx),
-            palette,
-            plugins: Plugins::start(cx),
-        };
-        let desk = Desk::new(cx, spec, file, ambient);
+        let ambient = ambient(cx, palette);
+        let desk = Desk::new(cx, spec, file, ambient, finish);
         zstack((
             size_probe(desk.surface).absolute().inset(0.0),
             board(desk),

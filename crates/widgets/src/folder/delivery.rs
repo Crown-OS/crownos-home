@@ -13,7 +13,7 @@ use crownui::{
 
 use super::{
     DESIGN, FRONT, State, art_pixels,
-    front::{self, Piece, TAB_HEIGHT, Tone},
+    front::{self, TAB_HEIGHT, Tip, Tone},
     refresh, shown_when,
 };
 use crate::{art, scale::Scale};
@@ -36,14 +36,14 @@ const GLOW: (f32, f32) = (250.0, 150.0);
 const GLOW_MOUTH: f32 = 200.0 / 240.0;
 
 const SHOWN_NAMES: usize = 3;
-const CHIP_TOP: f32 = 30.0;
+const CHIP_TOP: f32 = -26.0;
 const CHIP_HEIGHT: f32 = 34.0;
 const CHIP_MAX_WIDTH: f32 = 172.0;
 const CHIP_ICON: f32 = 18.0;
 const CHIP_CORNER: f32 = 10.0;
 /// Where a name comes in from, and how far it drops to be out of sight in the folder.
 const CHIP_ENTRY: (f32, f32, f32) = (70.0, -70.0, 14.0);
-const CHIP_SINK: f32 = 120.0;
+const CHIP_SINK: f32 = 176.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
@@ -218,14 +218,14 @@ fn chip(
             Vector::new(0.0, 6.0),
         ));
     let factor = scale.factor();
-    let now = move |runtime: &mut crownui::prelude::Runtime| {
-        let stage = delivery.with(runtime, |delivery| {
+    let stage = move |runtime: &mut crownui::prelude::Runtime| {
+        delivery.with(runtime, |delivery| {
             delivery
                 .as_ref()
                 .map_or(Stage::Glowing, |delivery| delivery.stage)
-        });
-        chip_pose(index, stage)
+        })
     };
+    let now = move |runtime: &mut crownui::prelude::Runtime| chip_pose(index, stage(runtime));
     let (entry_x, entry_y, entry_turn) = CHIP_ENTRY;
     let entry = Vector::new(entry_x, entry_y) * factor.get(cx);
     hstack(pill)
@@ -237,7 +237,9 @@ fn chip(
         .translate(bind(move |runtime| now(runtime).0 * factor.get(runtime)))
         .rotate(bind(move |runtime| now(runtime).1))
         .scale(bind(move |runtime| now(runtime).2))
-        .opacity(1.0)
+        .opacity(bind(move |runtime| {
+            shown_when(stage(runtime) == Stage::Hovering)
+        }))
         .enter(move |style| style.translate(entry).rotate(entry_turn).opacity(0.0))
         .transition(Spring::snappy())
 }
@@ -300,7 +302,12 @@ pub fn light_inside(cx: &mut Cx, state: State, scale: Scale) -> impl View + use<
 }
 
 /// The same light coming through the front pane, brightest along its top.
-pub fn light_through(state: State, tone: Memo<Tone>, scale: Scale) -> impl View + Styled {
+pub fn light_through(
+    state: State,
+    tone: Memo<Tone>,
+    tip: Signal<Tip>,
+    scale: Scale,
+) -> impl View + Styled {
     let factor = scale.factor();
     canvas(move |runtime, size, list| {
         let strength = match tone.get(runtime) {
@@ -322,7 +329,7 @@ pub fn light_through(state: State, tone: Memo<Tone>, scale: Scale) -> impl View 
             },
             blur: None,
         };
-        let outline = front::outline(size, factor.get(runtime), Piece::Whole);
+        let outline = front::front_outline(size, factor.get(runtime), tip.get(runtime));
         list.push(DrawCommand::FillPath(outline, light));
     })
     .pointer_events_none()

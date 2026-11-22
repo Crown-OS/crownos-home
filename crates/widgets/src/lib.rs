@@ -46,15 +46,13 @@ pub fn view(cx: &mut Cx, spec: &WidgetSpec, env: Env) -> AnyView {
         plugin::KIND => plugin::view(cx, spec, env),
         unknown => Err(WidgetError::UnknownWidget(unknown.to_owned())),
     };
+    let lights_itself = built.is_ok() && spec.kind == folder::KIND;
     let widget = built.unwrap_or_else(|e: WidgetError| {
         log::warn!("widget at {},{}: {e}", spec.column, spec.row);
         placeholder(env)
     });
-    zstack((widget, specular::highlight(spec.kind.clone(), env)))
-        .relative()
-        .w_full()
-        .h_full()
-        .boxed()
+    let light = (!lights_itself).then(|| specular::highlight(spec.kind.clone(), env));
+    zstack((widget, light)).relative().w_full().h_full().boxed()
 }
 
 /// The outline a widget of `kind` draws in a frame of `size`.

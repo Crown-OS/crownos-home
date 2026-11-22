@@ -7,4 +7,4 @@ mod menu;
 mod probe;
 mod root;
 
-pub use root::root;
+pub use root::{desktop, root};

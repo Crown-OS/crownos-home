@@ -9,5 +9,5 @@
 mod app;
 pub mod ui;
 
-pub use app::run;
+pub use app::{app_config, run};
 pub use crownhome_board as board;

@@ -26,6 +26,17 @@ fn layer() -> LayerOptions {
     .keyboard(KeyboardInteractivity::None)
 }
 
+pub fn app_config() -> AppConfig {
+    AppConfig::new("CrownOS Home")
+        .app_id(NAMESPACE)
+        .size(FALLBACK_SIZE.0, FALLBACK_SIZE.1)
+        .clear_color(TRANSPARENT)
+        .accessibility(false)
+        .font(kit::inter_font().to_vec(), Some(kit::INTER_FAMILY))
+        .layer(layer())
+        .corner_shape(CornerShape::Squircle)
+}
+
 pub fn run() -> Result<()> {
     let file = BoardSpec::path()
         .map_err(|e| log::warn!("the board will not be saved: {e}"))
@@ -33,13 +44,5 @@ pub fn run() -> Result<()> {
     let spec = file
         .as_deref()
         .map_or_else(BoardSpec::default, BoardSpec::load);
-    let config = AppConfig::new("CrownOS Home")
-        .app_id(NAMESPACE)
-        .size(FALLBACK_SIZE.0, FALLBACK_SIZE.1)
-        .clear_color(TRANSPARENT)
-        .accessibility(false)
-        .font(kit::inter_font().to_vec(), Some(kit::INTER_FAMILY))
-        .layer(layer())
-        .corner_shape(CornerShape::Squircle);
-    crownui::run(ui::root(spec, file), config).context("the desktop stopped")
+    crownui::run(ui::root(spec, file), app_config()).context("the desktop stopped")
 }

@@ -4,7 +4,10 @@
 //!
 //! `cargo run --example preview -- <out.png> [wallpaper.jpg] [--dark]
 //!     [--board widgets.toml] [--hover x y] [--click x y] [--right-click x y]
-//!     [--drag x0 y0 x1 y1] [--drop x y file] [--wait ms]`
+//!     [--drag x0 y0 x1 y1] [--drop x y file] [--wait ms] [--no-settle]`
+//!
+//! `--no-settle` leaves pointer actions mid-motion, so `--wait` alone sets how
+//! far an animation has run when the frame is taken.
 
 use std::{
     any::Any,
@@ -115,7 +118,19 @@ fn advance_by(app: &mut App, tasks: &Receiver<Finished>, span: Duration) -> Resu
     Ok(())
 }
 
-fn perform(app: &mut App, tasks: &Receiver<Finished>, action: &Action) -> Result<()> {
+/// What happens after a pointer action: animations run out, or the clock stays put.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum AfterAction {
+    Settle,
+    Hold,
+}
+
+fn perform(
+    app: &mut App,
+    tasks: &Receiver<Finished>,
+    action: &Action,
+    after: AfterAction,
+) -> Result<()> {
     match *action {
         Action::Wait(span) => return advance_by(app, tasks, span),
         Action::Drop(at, ref file) => {
@@ -165,12 +180,16 @@ fn perform(app: &mut App, tasks: &Receiver<Finished>, action: &Action) -> Result
             )))?;
         }
     }
-    settle(app, tasks)
+    match after {
+        AfterAction::Settle => settle(app, tasks),
+        AfterAction::Hold => Ok(()),
+    }
 }
 
 fn main() -> Result<()> {
     let mut arguments = std::env::args().skip(1);
     let (mut positional, mut actions, mut dark) = (Vec::new(), Vec::new(), false);
+    let mut after = AfterAction::Settle;
     let mut board = None;
     let number = |arguments: &mut dyn Iterator<Item = String>| -> Result<f32> {
         Ok(arguments.next().context("a coordinate")?.parse()?)
@@ -178,6 +197,7 @@ fn main() -> Result<()> {
     while let Some(argument) = arguments.next() {
         match argument.as_str() {
             "--dark" => dark = true,
+            "--no-settle" => after = AfterAction::Hold,
             "--board" => board = Some(PathBuf::from(arguments.next().context("a board file")?)),
             "--click" | "--right-click" => {
                 let at = Point::new(number(&mut arguments)?, number(&mut arguments)?);
@@ -246,7 +266,7 @@ fn main() -> Result<()> {
         .set_task_executor(Box::new(Tasks { runtime, finished }));
     settle(&mut app, &tasks)?;
     for action in &actions {
-        perform(&mut app, &tasks, action)?;
+        perform(&mut app, &tasks, action, after)?;
     }
     let pixels = app.renderer_mut().read_pixels()?;
     std::fs::write(&output, impeller::encode_png(&pixels)?)

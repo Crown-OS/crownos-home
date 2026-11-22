@@ -16,7 +16,7 @@ use crate::ui::{
     gesture::Grip,
 };
 use crownhome_board::{Tile, TileId};
-use crownhome_widgets::{self, Env, Finish, Shape};
+use crownhome_widgets::{self, Env, Shape};
 
 const BADGE: f32 = 24.0;
 const BADGE_FILL: Color = rgba(0x5C5C64E6);
@@ -64,7 +64,7 @@ fn placed(cx: &mut Cx, desk: Desk, tile: Signal<Tile>) -> impl View + use<> {
     let env = Env {
         ambient: desk.ambient,
         size,
-        finish: Finish::Live,
+        finish: desk.finish,
         raised: cx.signal(false),
     };
     let raised = env.raised;

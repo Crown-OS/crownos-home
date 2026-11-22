@@ -12,6 +12,7 @@ crownhome-board.workspace = true
 crownhome-services.workspace = true
 crownhome-util.workspace = true
 crownui.workspace = true
+motion.workspace = true
 crownplugin-proto.workspace = true
 crownplugin-render.workspace = true
 jiff.workspace = true

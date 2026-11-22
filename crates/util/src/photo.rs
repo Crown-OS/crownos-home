@@ -4,17 +4,15 @@ use image::{RgbaImage, imageops};
 
 use crate::raster::Picture;
 
-/// Pixels across the haze; it is drawn stretched, so it only has to hold colour.
-const HAZE_WIDTH: u32 = 48;
-const HAZE_SIGMA: f32 = 3.0;
+/// Pixels across the copy a photo's brightness is measured on.
+const SAMPLE_WIDTH: u32 = 48;
 /// Below this average brightness a photo counts as dark.
 const DARK_BELOW: f32 = 0.45;
 
-/// A photo, as drawn on a card, and what a frosted pane over it shows.
+/// A photo, as drawn on a card, and whether it is dark.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Print {
     pub picture: Picture,
-    pub haze: Picture,
     pub dark: bool,
 }
 
@@ -27,17 +25,15 @@ pub fn print(bytes: &[u8], width: u32, height: u32) -> Option<Print> {
     let filled = source
         .resize_to_fill(width, height, imageops::FilterType::Triangle)
         .into_rgba8();
-    let haze_height = (HAZE_WIDTH * height / width.max(1)).max(1);
+    let sample_height = (SAMPLE_WIDTH * height / width.max(1)).max(1);
     let small = imageops::resize(
         &filled,
-        HAZE_WIDTH,
-        haze_height,
+        SAMPLE_WIDTH,
+        sample_height,
         imageops::FilterType::Triangle,
     );
-    let haze = imageops::fast_blur(&small, HAZE_SIGMA);
     Some(Print {
         dark: brightness(&small) < DARK_BELOW,
-        haze: picture(haze),
         picture: picture(filled),
     })
 }
@@ -78,7 +74,6 @@ mod tests {
     fn a_print_fills_the_size_asked_for() -> Result<(), image::ImageError> {
         let print = print(&encoded([250, 250, 250, 255])?, 12, 8).expect("decodes");
         assert_eq!((print.picture.width, print.picture.height), (12, 8));
-        assert_eq!(print.haze.width, HAZE_WIDTH);
         assert!(!print.dark);
         Ok(())
     }

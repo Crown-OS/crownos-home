@@ -18,6 +18,7 @@ crownos-accounts = { path = "../crownos-accounts" }
 
 crownui = { path = "../crownui/crownui", default-features = false, features = ["wayland", "impeller", "static", "tokio"] }
 geometry = { path = "../crownui/geometry" }
+motion = { path = "../crownui/motion" }
 crownos-ipc = { path = "../crownos-ipc", features = ["tokio"] }
 crownplugin-proto = { path = "../crownos-plugins/proto" }
 crownplugin-render = { path = "../crownos-plugins/render" }
@@ -66,6 +67,8 @@ log.workspace = true
 env_logger.workspace = true
 
 [dev-dependencies]
+capture = { path = "../crownui/capture" }
+crownplugin-proto.workspace = true
 crowntest = { path = "../crownui/crowntest" }
 impeller = { path = "../crownui/impeller", features = ["static"] }
 runtime = { path = "../crownui/runtime" }
